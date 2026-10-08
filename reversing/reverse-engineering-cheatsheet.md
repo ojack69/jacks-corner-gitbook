@@ -1,7 +1,4 @@
-Title: Reverse Engineering Cheatsheet
-Slug: reversing/reverse-engineering-cheatsheet
-Date: 1957-01-01 00:00
-Category: Cheatsheet
+# Reverse Engineering Cheatsheet
 
 ## Reverse Engineering Common Strategies
 
@@ -223,15 +220,15 @@ In x64 architectures, `RDI`, `RSI`, `RDX`, `RCX`, `R8`, and `R9` are used to pas
 
 Extract data from binary:
 
-~~~
+```
 binwalk -e binary // extract default known file types
 binwalk --dd=".*" file_name // extract any file types or specified one
-~~~
+```
 
 Emulate devices in user-space:
 
-~~~
+```
 file firmware.bin // Check firmware architecture
 cp $(which qemu-ARCH-static) ./to_emulate_root_dir
 chroot ./to_emulate_root_dir ./qemu-ARCH-static command // run command in emulated environment
-~~~
+```

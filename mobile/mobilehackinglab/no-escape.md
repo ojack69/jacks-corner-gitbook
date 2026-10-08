@@ -1,7 +1,4 @@
-Title: MobileHackingLab - No Escape
-Slug: mobile/mobilehackinglab/no-escape
-Date: 2025-10-05 18:00
-Category: Mobile
+# MobileHackingLab - No Escape
 
 This is an iOS mobile challenge from [MobileHackingLabs](https://www.mobilehackinglab.com/course/lab-no-escape).
 
@@ -11,14 +8,14 @@ The challenge centers around a fictitious app called No Escape, designed with ro
 
 When opening the application with a Jailbroken device, the following error message is returned:
 
-![[no-escape-app-1.jpg]]
+![no-escape-app-1](../../images/mobile/mobilehackinglab/no-escape/no-escape-app-1.jpg)
 
 ## Static Analysis
 
 After decompiling the application, the method `isJailbroken` is easily identified:
 
 
-~~~c
+```c
 /* No_Escape.isJailbroken() -> Swift.Bool */
 
 bool No_Escape::isJailbroken(void)
@@ -54,15 +51,15 @@ bool No_Escape::isJailbroken(void)
   }
   return (uStack_1c & 1) != 0;
 }
-~~~
+```
 
-![[no-escape-static-1.png]]
+![no-escape-static-1](../../images/mobile/mobilehackinglab/no-escape/no-escape-static-1.png)
 
 This method implements 4 different checks:
 
 - `checkForJailbreakFiles`: This check looks for common jailbreak files such as `/Application/Cydia.app`, `/bin/bash`, etc.
 
-~~~c
+```c
 
 undefined4
 $$No_Escape.(checkForJailbreakFiles_in__BCE8F13474E5A52C60853EA803F80A81)()_->_Swift.Bool(void)
@@ -161,15 +158,15 @@ $$No_Escape.(checkForJailbreakFiles_in__BCE8F13474E5A52C60853EA803F80A81)()_->_S
 }
 
 
-~~~
+```
 
 
-![[no-escape-static-2.png]]
+![no-escape-static-2](../../images/mobile/mobilehackinglab/no-escape/no-escape-static-2.png)
 
 
 - `checkForWritableSystemDirectories`: This check tries performing write operation on the file system `/private` which is supposed to be read-only on non-jailbroken systems.
 
-~~~c
+```c
 /* WARNING: Removing unreachable block (ram,0x00010000a690) */
 
 uint $$No_Escape.(checkForWritableSystemDirectories_in__BCE8F13474E5A52C60853EA803F80A81)()_->_Swift .Bool
@@ -280,13 +277,13 @@ uint $$No_Escape.(checkForWritableSystemDirectories_in__BCE8F13474E5A52C60853EA8
 }
 
 
-~~~
+```
 
-![[no-escape-static-3.png]]
+![no-escape-static-3](../../images/mobile/mobilehackinglab/no-escape/no-escape-static-3.png)
 
 - `canOpenCydia`: This check tries to open Cydia with a deeplink to a fake package. 
 
-~~~c
+```c
 
 undefined4 $$No_Escape.(canOpenCydia_in__BCE8F13474E5A52C60853EA803F80A81)()_->_Swift.Bool(void)
 
@@ -368,13 +365,13 @@ undefined4 $$No_Escape.(canOpenCydia_in__BCE8F13474E5A52C60853EA803F80A81)()_->_
 }
 
 
-~~~
+```
 
-![[no-escape-static-4.png]]
+![no-escape-static-4](../../images/mobile/mobilehackinglab/no-escape/no-escape-static-4.png)
 
 - `checkSandboxViolation`: This check looks for the folder `/private/var/lib/apt/` which indicates that the device has been jailbroken.
 
-~~~c
+```c
 
 bool $$No_Escape.(checkSandboxViolation_in__BCE8F13474E5A52C60853EA803F80A81)()_->_Swift.Bool(void)
 
@@ -410,9 +407,9 @@ bool $$No_Escape.(checkSandboxViolation_in__BCE8F13474E5A52C60853EA803F80A81)()_
 }
 
 
-~~~
+```
 
-![[no-escape-static-5.png]]
+![no-escape-static-5](../../images/mobile/mobilehackinglab/no-escape/no-escape-static-5.png)
 
 ## Solution
 
@@ -422,19 +419,19 @@ The solution is straightforward: by using `frida`, I'll hook to these methods an
 
 Since `checkForJailbreakFiles`, `checkForWritableSystemDirectories`, `canOpenCydia`, and `checkSandboxViolation` are not exported functions, in order to hook them, I need their offset, as shown below:
 
-![[no-escape-ghidra-1.png]]
+![no-escape-ghidra-1](../../images/mobile/mobilehackinglab/no-escape/no-escape-ghidra-1.png)
 
 Please note that address in `ghidra` start from the configured **base image address** which is found at:
 
-~~~
+```
 Window > Memory Map
-~~~
+```
 
-![[no-escape-ghidra-2.png]]
+![no-escape-ghidra-2](../../images/mobile/mobilehackinglab/no-escape/no-escape-ghidra-2.png)
 
 This mean that in the `frida` script, I must subtract this base image address from the actual function offset. The final solution script is the following:
 
-~~~javascript
+```javascript
 const offsetsLabels = ['checkForJailbreakFiles', 'checkForWritableSystemDirectories', 'canOpenCydia', 'checkSandboxViolation'];
 const offsets = [0x00000a118, 0x00000a3fc, 0x00000a6fc, 0x00000a940];
 const baseAddress = Module.getBaseAddress("No Escape");
@@ -452,18 +449,18 @@ offsets.forEach((o, i) =>{
         }
     })
 })
-~~~
+```
 
-![[no-escape-solution-1.png]]
+![no-escape-solution-1](../../images/mobile/mobilehackinglab/no-escape/no-escape-solution-1.png)
 
 Launch `frida` **before** opening the application as follows; the `-W` option instructs `frida` to await for the **No Escape** process to spawn instead of attaching to a running process: 
 
-~~~shell
+```shell
 frida -U -l bypass.js -W 'com.mobilehackinglab.No-Escape.36V2J65722' 
-~~~
+```
 
-![[no-escape-frida-1.png]]
+![no-escape-frida-1](../../images/mobile/mobilehackinglab/no-escape/no-escape-frida-1.png)
 
 Having bypassed all the security checks, the flag is returned:
 
-![[no-escape-app-2.jpg]]
+![no-escape-app-2](../../images/mobile/mobilehackinglab/no-escape/no-escape-app-2.jpg)

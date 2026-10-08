@@ -1,7 +1,4 @@
-Title: MAPNA CTF 2024 - ninipwn
-Slug: ctf/mapna-2024/ninipwn
-Date: 2024-01-21 18:00
-Category: CTF
+# MAPNA CTF 2024 - ninipwn
 
 Running checksec against the binary:
 
@@ -22,17 +19,17 @@ Running the binary with gdb and listing available symbols\*:
 
 Some interesting symbols are found:
 
-![[ninipwn-symbols.png]]
+![ninipwn-symbols](../../images/ctf/mapna-2024/ninipwn-symbols.png)
 
 Analyzing some symbols: 
 
-![[ninipwn-symbols-analysis.png]]
+![ninipwn-symbols-analysis](../../images/ctf/mapna-2024/ninipwn-symbols-analysis.png)
 
-\*Note: 30/01/2024 - there's a way better tool to list symbols from a binary - [[ret2win|see this]]
+\*Note: 30/01/2024 - there's a way better tool to list symbols from a binary - [see this](../../binary-exploitation/rop-emporium/ret2win.md)
 
 Decompiling the binary with Ghidra\*:
 
-~~~java
+```java
 void encryption_service(void)
 
 {
@@ -67,13 +64,13 @@ void encryption_service(void)
   }
   return;
 }
-~~~
+```
 
 \* Note: "buffer" and "canary" are just label set to ease code analysis, they're not the original symbols.
 
 Binary performs a XOR encryption to all bytes starting from \*\_\_buf to \*\_\_buf + text_length:
 
-~~~java
+```java
 void encrypt(char *__block,int __edflag)
 
 {
@@ -84,11 +81,11 @@ void encrypt(char *__block,int __edflag)
   }
   return;
 }
-~~~
+```
 
 The target will be the win function (*ret2win* challenge):
 
-~~~java
+```java
 void win(void)
 
 {
@@ -107,7 +104,7 @@ void win(void)
   }
   return;
 }
-~~~
+```
 
 The strategy will be the following:
 
@@ -118,7 +115,7 @@ The strategy will be the following:
 
 The solution is the following:
 
-~~~python
+```python
 from pwn import *
 import sys
 
@@ -163,6 +160,6 @@ print('[!] Buffer overflow with canary and ret address last byte...')
 p.send(payload)
 
 p.interactive()
-~~~
+```
 
-![[ninipwn-pwned.png]]
+![ninipwn-pwned](../../images/ctf/mapna-2024/ninipwn-pwned.png)

@@ -1,7 +1,4 @@
-Title: Windows Privilege Escalation
-Slug: privilege-escalation/windows-privilege-escalation
-Date: 2025-01-18 00:00
-Category: Privilege Escalation
+# Windows Privilege Escalation
 
 ## Concepts
 
@@ -61,7 +58,7 @@ Category: Privilege Escalation
 
 **Kernel exploits can often be unstable and may cause a system crash.**
 
-See [[windows-privilege-escalation-cheatsheet#Kernel Exploits|Windows Privilege Escalation Cheatsheet - Kernel Exploits]].
+See [Windows Privilege Escalation Cheatsheet - Kernel Exploits](windows-privilege-escalation-cheatsheet.md#kernel-exploits).
 
 ## Service and Tasks Exploits
 
@@ -72,9 +69,9 @@ See [[windows-privilege-escalation-cheatsheet#Kernel Exploits|Windows Privilege 
 
 Consider the following bin path:
 
-~~~
+```
 c:\program files\sub dir\program name
-~~~
+```
 
 The system tries to interpret the possible correct path in the following order:
 
@@ -97,14 +94,14 @@ The system tries to interpret the possible correct path in the following order:
 
 When DLLs are loaded by a binary, Windows would try to locate it in the following order:
 
-~~~
+```
 - Directory where the binary is located
 - C:\Windows\System32
 - C:\Windows\System
 - C:\Windows\
 - Current directory where the binary has been launched
 - Directory present in %PATH% environment variable
-~~~
+```
 
 A good approach is to enumerate directories in the `%PATH%` environment variable and check if those are writable by the user.
 
@@ -117,7 +114,7 @@ A good approach is to enumerate directories in the `%PATH%` environment variable
 
 - If the attacker can write on the executable being run by the task, it can inject command to be executed with elevated privileges.
 
-See [[windows-privilege-escalation-cheatsheet#Service and Tasks Exploits|Windows Privilege Escalation Cheatsheet - Service and Tasks Exploits]].
+See [Windows Privilege Escalation Cheatsheet - Service and Tasks Exploits](windows-privilege-escalation-cheatsheet.md#service-and-tasks-exploits).
 
 ## Registry Exploits
 
@@ -131,7 +128,7 @@ See [[windows-privilege-escalation-cheatsheet#Service and Tasks Exploits|Windows
 - Local Machine registry: `HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer`
 - Current User registry: `HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer`
 
-See [[windows-privilege-escalation-cheatsheet#Registry Exploits|Windows Privilege Escalation Cheatsheet - Registry Exploits]].
+See [Windows Privilege Escalation Cheatsheet - Registry Exploits](windows-privilege-escalation-cheatsheet.md#registry-exploits).
 
 ## Applications Exploits
 
@@ -156,9 +153,9 @@ This attack uses a combination of **NTLM relay** and **DNS spoofing** to gain SY
 	- The NBS Spoofer can eventually force a DNS lookup by mean of a technique called **Port Exhaustion**: binding to every single UDP port (NBNS is a UDP protocol), when the system tries to perform a DNS lookup it will fail because there will be no available source port for the DNS reply to come to.
 - The NTLM credential gets then relayed to SMB (**SMB Relay**) in order to execute commands as SYSTEM.
 
-~~~quote
+```quote
 Microsoft patched this (MS16-075) by disallowing same-protocol NTLM authentication using a challenge that is already in flight. What this means is that SMB->SMB NTLM relay from one host back to itself will no longer work. MS16-077 WPAD Name Resolution will not use NetBIOS (CVE-2016-3213) and does not send credential when requesting the PAC file(CVE-2016-3236). WAPD MITM Attack is patched.
-~~~
+```
 
 Vulnerable Windows versions:
 
@@ -170,7 +167,7 @@ Vulnerable Windows versions:
 
 Hot Potato reference: [https://github.com/foxglovesec/Potato](https://github.com/foxglovesec/Potato)
 
-See [[windows-privilege-escalation-cheatsheet#Potatoes|Windows Privilege Escalation Cheatsheet - Potatoes]].
+See [Windows Privilege Escalation Cheatsheet - Potatoes](windows-privilege-escalation-cheatsheet.md#potatoes).
 ### Rotten Potato
 
 Users with `SeImpersonate` and `SeAssignPrimaryToken` privileges can impersonate the access token of other users, including SYSTEM. 
@@ -179,11 +176,11 @@ Users with `SeImpersonate` and `SeAssignPrimaryToken` privileges can impersonate
 
 The Rotten Potato attacks abuses this privileges in order to gain SYSTEM privileges. This attack is complex; please refer to [this](https://foxglovesecurity.com/2016/09/26/rotten-potato-privilege-escalation-from-service-accounts-to-system/):
 
-~~~quote
+```quote
 1. Trick the “NT AUTHORITY\SYSTEM” account into authenticating via NTLM to a TCP endpoint we control.
 2. Man-in-the-middle this authentication attempt (NTLM relay) to locally negotiate a security token for the “NT AUTHORITY\SYSTEM” account. This is done through a series of Windows API calls.
 3. Impersonate the token we have just negotiated. This can only be done if the attackers current account has the privilege to impersonate security tokens. This is usually true of most service accounts and not true of most user-level accounts.
-~~~
+```
 
 
 Vulnerable Windows versions:
@@ -195,7 +192,7 @@ Vulnerable Windows versions:
 - Windows Server 2012 and 2012 R2
 - Windows Server 2016 (early versions)
 
-See [[windows-privilege-escalation-cheatsheet#Potatoes|Windows Privilege Escalation Cheatsheet - Potatoes]].
+See [Windows Privilege Escalation Cheatsheet - Potatoes](windows-privilege-escalation-cheatsheet.md#potatoes).
 
 ### Juicy Potato
 
@@ -210,7 +207,7 @@ Vulnerable Windows versions:
 - Windows Server 2012 and 2012 R2
 - Windows Server 2016 (early versions)
 
-See [[windows-privilege-escalation-cheatsheet#Potatoes|Windows Privilege Escalation Cheatsheet - Potatoes]].
+See [Windows Privilege Escalation Cheatsheet - Potatoes](windows-privilege-escalation-cheatsheet.md#potatoes).
 
 ### Rogue Potato
 
@@ -231,7 +228,7 @@ Vulnerable Windows versions:
 - Windows Server 2016
 
 
-See [[windows-privilege-escalation-cheatsheet#Potatoes|Windows Privilege Escalation Cheatsheet - Potatoes]].
+See [Windows Privilege Escalation Cheatsheet - Potatoes](windows-privilege-escalation-cheatsheet.md#potatoes).
 
 ### Print Spoofer
 
@@ -250,7 +247,7 @@ Vulnerable Windows versions:
 - Windows Server 2016
 - Windows Server 2019 (early builds)
 
-See [[windows-privilege-escalation-cheatsheet#Potatoes|Windows Privilege Escalation Cheatsheet - Potatoes]].
+See [Windows Privilege Escalation Cheatsheet - Potatoes](windows-privilege-escalation-cheatsheet.md#potatoes).
 (yeah, it's not a potato but it's a similar attack)
 ### Local Potato
 
@@ -263,7 +260,7 @@ It works targeting two different scenarios:
 - SMB Scenario: patched with **[CVE-2023-21746](https://msrc.microsoft.com/update-guide/en-US/vulnerability/CVE-2023-21746)**. By abusing SMB, it's possible for an attacker to copy malicious DLL to any system path, enabling to elevate privileges by DLL Hijacking attacks.
 - HTTP/WebDAV scenario: should still work on recent releases. By abusing the WebDAV, it's possible for an attacker to perform arbitrary file write to the WebDAV directory.
 
-See [[windows-privilege-escalation-cheatsheet#Potatoes|Windows Privilege Escalation Cheatsheet - Potatoes]].
+See [Windows Privilege Escalation Cheatsheet - Potatoes](windows-privilege-escalation-cheatsheet.md#potatoes).
 
 ### Sweet Potato & Generic Potato
 
@@ -273,12 +270,12 @@ See [[windows-privilege-escalation-cheatsheet#Potatoes|Windows Privilege Escalat
 
 Generic potato is useful when:
 
-~~~quote
+```quote
 // https://jlajara.gitlab.io/Potatoes_Windows_Privesc#hotPotato
 - The system doesn’t have the print service running which prevents SweetPotato.
 - WinRM is running preventing RogueWinRM
 - You don’t have outbound RPC allowed to any machine you control and the BITS service is disabled preventing RoguePotato.
-~~~
+```
 
 ### God Potato
 
@@ -291,7 +288,7 @@ Vulnerable Windows Versions:
 - from Windows Server 2012 to Windows Server 2022 
 - from Windows8 to Windows 11
 
-See [[windows-privilege-escalation-cheatsheet#Potatoes|Windows Privilege Escalation Cheatsheet - Potatoes]].
+See [Windows Privilege Escalation Cheatsheet - Potatoes](windows-privilege-escalation-cheatsheet.md#potatoes).
 
 
 ## Meterpreter getsystem

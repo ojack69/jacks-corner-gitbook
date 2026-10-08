@@ -1,7 +1,4 @@
-Title: IDA Cheatsheet
-Slug: reversing/ida-cheatsheet
-Date: 1957-01-01 00:00
-Category: Cheatsheet
+# IDA Cheatsheet
 
 | **Shortcut**     | **Description**                                           |
 | ---------------- | --------------------------------------------------------- |

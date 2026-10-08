@@ -1,16 +1,12 @@
-Title: MobileHackingLab - Note Keeper
-Slug: mobile/mobilehackinglab/note-keeper
-Date: 2024-07-13 18:00
-Category: Mobile
-
+# MobileHackingLab - Note Keeper
 
 After decompiling the APK, in the class `com.mobilehackinglab.notekeeper.MainActivity` the function `parse`  from the `notekeeper` native library is loaded.
 
-![[parse-inovking.png]]
+![parse-inovking](../../images/mobile/mobilehackinglab/note-keeper/parse-inovking.png)
 
 Following the `parse` function decompiled and re-engineered with Ghidra from the `libnotekeeper.so` shared library:
 
-![[libnotekeeper-parse-function.png]]
+![libnotekeeper-parse-function](../../images/mobile/mobilehackinglab/note-keeper/libnotekeeper-parse-function.png)
 
 The parameter `to_parse` will correspond to the title of a newly created note. It's value is copied into a `buffer` variable which size is `100` bytes. 
 
@@ -20,7 +16,7 @@ Since there are no boundary checks when the `to_parse` value is copied to `buffe
 
 Following an example of Frida code exploiting this **Buffer Overflow** vulnerability:
 
-~~~javascript
+```javascript
 Java.perform(()=>{
     const MainActivity = Java.use("com.mobilehackinglab.notekeeper.MainActivity");
     MainActivity.parse.overload('java.lang.String').implementation = function(args){
@@ -30,10 +26,10 @@ Java.perform(()=>{
     };
 
 })
-~~~
+```
 
 This script will set the `exploit` value as parameter to the `parse` function each time a new note is created in the application.
 
 The result is the following:
 
-![[rce.png]]
+![rce](../../images/mobile/mobilehackinglab/note-keeper/rce.png)

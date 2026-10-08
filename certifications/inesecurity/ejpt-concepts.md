@@ -1,40 +1,36 @@
-Title: eJPT-v2 Concepts
-Slug: certifications/inesecurity/ejpt-concepts
-Date: 2024-01-05 18:00
-Category: Certifications
+# eJPT-v2 Concepts
 
-
-# Information Gathering
+## Information Gathering
 
 Active: actively interacting with systems or individuals to obtain specific information
 Passive: find as much information about a target from public available information
 
-## Passive Information Gathering
-### WHOIS
+### Passive Information Gathering
+#### WHOIS
 
 Whois: protocol used to perform a lookup of a domains or ip address blocks registered users or assignee
 
 when privacy options are enabled (for example by enabling DNSSEC), it hides information about registrant.
 
-### Website Footprinting with Netcraft
+#### Website Footprinting with Netcraft
 Netcraft: it's used to gather information about a target domain such as registrar, emails, ip addresses, tls/ssl certificates, OS or web technologies, probable vulnerabilities, etc.
 It offers an Internet Data Mining service which collects all kind of informations about a target
 
 It collects all information collected manually into previous topics.
 
-### DNS Recon
+#### DNS Recon
 
 When cloudflare is set as proxy, if the mail server and website are hosted on the same server, the MX record will expose the real IP since it needs an A record since Cloudflare does not proxy mail traffic ([see here](https://community.cloudflare.com/t/deprecated-an-a-aaaa-cname-or-mx-record-is-pointed-to-your-origin-server-exposing-your-origin-ip-address/67604)).
 
-### Subdomain Enumeration with sublist3r
+#### Subdomain Enumeration with sublist3r
 
 sublist3r: uses public accessible databases (OSINT) to collect information about a domain. Eventually it supports brute force but it would be active enumeration.
 
 Since it uses public engines, a large number of requests can lead to a block: bypassable with a VPN
 
-## Active Information Gathering
+### Active Information Gathering
 
-### DNS Zone Transfers
+#### DNS Zone Transfers
 
 Cool resource:
 
@@ -44,12 +40,12 @@ Zone transfer is a mechanism use to copy one or more zone records from a DNS ser
 
 \*Note: /etc/hosts has priority above dns server when resolving a name
 
-### Port Scanning
+#### Port Scanning
 When dealing with windows systems, ICMP requests are tipically blocked. Nmap uses ping (ICMP protocol) to check host aliveness: when ICMP is blocked, the -Pn option is required to avoid checking host is alive.
 
-# Assessment Methodologies: Footprinting & Scanning
+## Assessment Methodologies: Footprinting & Scanning
 
-## Network Host Mapping
+### Network Host Mapping
 Network mapping process involves:
 
 - Physical Access: 
@@ -67,7 +63,7 @@ Network mapping process involves:
     - traceroute: shows all the network point between a source and a destinations, revealing the path of the sent packages
     - ping: sends an echo request (type 8) and eventually gets a response; used to check if an host is alive
 
-## Port Scanning
+### Port Scanning
 TCP Three way handshake
     - Client: SYN
     - Server: SYN + ACK
@@ -81,37 +77,37 @@ TCP Three way handshake
     - Trying a stealth TCP connection, resetting the connection (RST) right after the SYN + ACK
     - banner grabbing
 
-## Assessment Methodologies: Enumeration
+### Assessment Methodologies: Enumeration
 
-### SMB & SAMBA
+#### SMB & SAMBA
 Generally ports open are 135, 139, 445 when dealing with machines with SMB.
 
 **SMB**: Windows implementation of a network file share service. Stands for Server Message Block.
 **SAMBA**: is SMB protocol implementation on Linux.
 
-### FTP
+#### FTP
 File Transfer Protocol, default port is 21.
 
 Anonymous login: when anonymous login is enabled is possible to login as "anonymous" user with empty password
 
-### SSH
+#### SSH
 Secure Shell, default port is 22.
 
 
-### MySQL
+#### MySQL
 Default port is 3306.
 
-### MSSQL
+#### MSSQL
 
 Default port 1433.
 
-### SMTP
+#### SMTP
 
 SMTP uses TCP port 25 by default. It is can also be configured to run on TCP port 465 and 587 when running with SSL or TLS.
 
-# Vulnerability Assessment
+## Vulnerability Assessment
 
-### Vulnerabilities
+#### Vulnerabilities
 
 Vulnerability: 
 
@@ -123,25 +119,25 @@ Can be found in:
 - the software
 - the OS
 
-### Heartbleed
+#### Heartbleed
 
 Heartbleed (CVE-2014-0160): The (1) TLS and (2) DTLS implementations in OpenSSL 1.0.1 before 1.0.1g do not properly handle Heartbeat Extension packets, which allows remote attackers to obtain sensitive information from process memory via crafted packets that trigger a buffer over-read, as demonstrated by reading private keys, related to d1_both.c and t1_lib.c, aka the Heartbleed bug.
 
-### EternalBlue - MS17-1010
+#### EternalBlue - MS17-1010
 
 EternalBlue (CVE-2017-0143): The SMBv1 server in Microsoft Windows Vista SP2; Windows Server 2008 SP2 and R2 SP1; Windows 7 SP1; Windows 8.1; Windows Server 2012 Gold and R2; Windows RT 8.1; and Windows 10 Gold, 1511, and 1607; and Windows Server 2016 allows remote attackers to execute arbitrary code via crafted packets, aka "Windows SMB Remote Code Execution Vulnerability." 
 
-### Log4J
+#### Log4J
 
 CVE-2021-44228: Apache Log4j2 2.0-beta9 through 2.15.0 (excluding security releases 2.12.2, 2.12.3, and 2.3.1) JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints. An attacker who can control log messages or log message parameters can execute arbitrary code loaded from LDAP servers when message lookup substitution is enabled. From log4j 2.15.0, this behavior has been disabled by default. From version 2.16.0 (along with 2.12.2, 2.12.3, and 2.3.1), this functionality has been completely removed. Note that this vulnerability is specific to log4j-core and does not affect log4net, log4cxx, or other Apache Logging Services projects.
 
-# Host & Network Penetration Testing: System/Host Based Attacks
+## Host & Network Penetration Testing: System/Host Based Attacks
 
 Inherent with exploiting Windows or Linux vulnerabilities.
 
 System/Host based attacks are attacks targeting a specific system running a specific operating system. Usually exploitable after gaining access to the target network. 
 
-## Windows
+### Windows
 
 Microsoft Windows has various OS versions and releases which makes the threat surface fragmented in terms of vulnerabilities.
 
@@ -155,7 +151,7 @@ All Windows OS’s:
 
 Transition from a Windows release to another is a slow process for customers so many of them opt to use older versions that may be affected by an increasing number of vulnerabilities.
 
-### Frequently Exploited Windows Services
+#### Frequently Exploited Windows Services
 
 
 | Protocol/Service                                | Ports              | Purpose                                                                                                                                                   |  
@@ -166,7 +162,7 @@ Transition from a Windows release to another is a slow process for customers so 
 | RDP(Remote Desktop Protocol)                    | TCP port 445       | Proprietary GUI remote access protocol developed by Microsoft and is used to remotely authenticate and interact with a Windows system.                    |  
 | WinRM (Windows Remote Management Protocol)      | TCP ports 5986/443 | Windows remote management protocol that can be used to facilitate remote access with Windows systems.                                                     |  
 
-#### IIS
+##### IIS
 
 IIS (Internet Information Services) is a proprietary extensible web server software developed by Microsoft for use with the Windows NT family.
 
@@ -177,7 +173,7 @@ Supported executable file extensions:
 - .config
 - .php
 
-#### WebDAV
+##### WebDAV
 
 WebDAV (Web-based Distributed Authoring and Versioning) is a set of extensions to the HTTP protocol which allow users to collaboratively edit and manage files on remote web servers. WebDAV runs on top Microsoft IIS on ports 80/443.
 WebDAV implements authentication in the form of a username and password.
@@ -187,7 +183,7 @@ Exploitation:
 - Identifying whether WebDAV has been configured to run on the IIS web server
 - Brute-force attack on the WebDAV server in order to identify legitimate credentials
 - Upload a malicious .asp payload that can be used to execute arbitrary commands or obtain a reverse shell on the target.
-#### SMB and PsExec
+##### SMB and PsExec
 
 SMB (Server Message Block) is a network file sharing protocol that is used to facilitate the sharing of files and peripherals (printers and serial ports) between computers on a local network (LAN).
 
@@ -195,7 +191,7 @@ Users must provide a username and password in order to authenticate with the SMB
 
 PsExec is a lightweight telnet-replacement developed by Microsoft that allows you execute processes on remote windows systems using any user’s credentials.
 
-#### MS17-010 EternalBlue Exploit
+##### MS17-010 EternalBlue Exploit
 
 EternalBlue (MS17-010/CVE-2017-0144) is the name given to a collection of
 Windows vulnerabilities and exploits that allow attackers to remotely execute arbitrary code and gain access to a Windows system and consequently the network that the target system is a part of.
@@ -214,7 +210,7 @@ This vulnerability affects multiple versions of Windows:
 
 Microsoft released a patch for the vulnerability in March, 2017, however, many users and companies have still not yet patched their systems.
 
-#### RDP
+##### RDP
 
 The Remote Desktop Protocol (RDP) is a proprietary GUI remote access protocol developed by Microsoft and is used to remotely connect and interact with a Windows system. 
 
@@ -224,7 +220,7 @@ RDP authentication requires a legitimate user account on the target system as we
 
 Often system administrators change the default port 3389.
 
-#### CVE-2019-0708 - BlueKeep
+##### CVE-2019-0708 - BlueKeep
 
 BlueKeep (CVE-2019-0708) is the name given to an RDP vulnerability in Windows that could potentially allow attackers to remotely execute arbitrary code and gain access to a Windows system and consequently the network that the target system is a part of.
 
@@ -238,7 +234,7 @@ The BlueKeep vulnerability affects multiple versions of Windows:
 - Windows 7
 - Windows Server 2008 & R2
 
-#### WinRM
+##### WinRM
 
 Windows Remote Management (WinRM) is a Windows remote management protocol that can be used to facilitate remote access with Windows systems over HTTP(S).
 
@@ -252,13 +248,13 @@ WinRM typically uses TCP port 5985 and 5986 (HTTPS).
 WinRM implements access control and security for communication between systems through various forms of authentication.
 
 
-### Windows Privilege Escalation
+#### Windows Privilege Escalation
 
 Privilege escalation is the process of exploiting vulnerabilities or misconfigurations in
 systems to elevate privileges from one user to another, typically to a user with
 administrative or root access on a system.
 
-#### Windows Kernel Exploitation
+##### Windows Kernel Exploitation
 
 A Kernel is a computer program that is the core of an operating system and has
 complete control over every resource and hardware on a system. It acts as a translation
@@ -283,7 +279,7 @@ methodology:
 - Downloading, compiling and transferring kernel exploits onto the target
 system.
 
-#### Bypassing UAC With UACMe
+##### Bypassing UAC With UACMe
 
 User Account Control (UAC) is a Windows security feature introduced in Windows Vista that is used to prevent unauthorized changes from being made to the operating system.
 
@@ -304,7 +300,7 @@ Tools:
 - It allows attackers to execute malicious payloads on a Windows target with
 administrative/elevated privileges by abusing the inbuilt Windows AutoElevate tool.
 
-#### Access Token Impersonation
+##### Access Token Impersonation
 
 Windows access tokens are a core element of the authentication process on Windows and are created and managed by the **Local Security Authority Subsystem Service** (LSASS).
 
@@ -324,9 +320,9 @@ The following are the privileges that are required for a successful impersonatio
 - SeCreateToken: This allows a user to create an arbitrary token with administrative privileges.
 - SeImpersonatePrivilege: This allows a user to create a process under the security context of another user typically with administrative privileges.
 
-### Windows File System Vulnerabilities
+#### Windows File System Vulnerabilities
 
-#### Alternate Data Streams
+##### Alternate Data Streams
 Alternate Data Streams (ADS) is an NTFS (New Technology File System) file attribute and
 was designed to provide compatibility with the MacOS HFS (Hierarchical File System).
 
@@ -341,9 +337,9 @@ stream (metadata) of a legitimate file.
 This technique is usually used to evade basic signature based AVs and static scanning
 tools.
 
-### Windows Credential Dumping
+#### Windows Credential Dumping
 
-#### Windows Password
+##### Windows Password
 
 The Windows OS stores hashed user account passwords locally in the **SAM (Security
 Accounts Manager)** database. Authentication and verification of user credentials is facilitated by the Local Security Authority (LSA).
@@ -374,7 +370,7 @@ NTLM improves upon LM in the following ways:
 - Case sensitive.
 - Allows the use of symbols and unicode characters.
 
-#### Passwords in Configuration Files
+##### Passwords in Configuration Files
 
 Windows can automate a variety of repetitive tasks; this is typically done through the use of the Unattended Windows Setup utility, which is used to automate the mass installation/deployment of Windows on systems.
 - **This tool utilizes configuration files that contain specific configurations and user account credentials, specifically the Administrator account’s password**.
@@ -385,13 +381,13 @@ The Unattended Windows Setup utility will typically utilize one of the following
 - C:\\Windows\\Panther\\Unattend.xml
 - C:\\Windows\\Panther\\Autounattend.xml
 
-#### Pass-the-Hash Attack
+##### Pass-the-Hash Attack
 
 Pass-the-hash is an exploitation technique that involves capturing or harvesting NTLM hashes or clear-text passwords and using them to authenticate with the target legitimately.
 
-## Linux Exploitation
+### Linux Exploitation
 
-### Frequently Exploited Linux Services
+#### Frequently Exploited Linux Services
 
 | Protocol/Service             | Ports            | Purpose |
 | ---------------------------- | ---------------- | ------- |
@@ -401,7 +397,7 @@ Pass-the-hash is an exploitation technique that involves capturing or harvesting
 | SAMBA                        | TCP port 445     | Samba is the Linux implementation of SMB, and allows Windows systems to access Linux shares and devices.        |
 
 
-### Bash CVE-2014-6271 Vulnerability (Shellshock)
+#### Bash CVE-2014-6271 Vulnerability (Shellshock)
 
 Shellshock (CVE-2014-6271) is the name given to a family of vulnerabilities in the Bash shell (since V1.3) that allow an attacker to execute remote arbitrary commands via Bash, consequently allowing the attacker to obtain remote access to the target system via a reverse shell.
 
@@ -412,7 +408,7 @@ that allows you to communicate with Bash.
 - In the context of an Apache web server, we can utilize any legitimate CGI scripts accessible on the web server. Whenever a CGI script is executed, the web server will initiate a new process and run the CGI script with Bash.
 
 
-### Linux Kernel Exploits
+#### Linux Kernel Exploits
 Kernel exploits on Linux will typically target vulnerabilities In the Linux kernel to execute arbitrary code in order to run privileged system commands or to obtain a system shell.
 
 Privilege escalation on Linux systems will typically follow the following
@@ -420,7 +416,7 @@ methodology:
 - Identifying kernel vulnerabilities
 - Downloading, compiling and transferring kernel exploits onto the target system.
 
-### Exploiting Misconfigured Cron Jobs
+#### Exploiting Misconfigured Cron Jobs
 
 Cron jobs can be run as any user on the system; keep an eye on Cron jobs that have been configured to be run as the “root” user.
 
@@ -428,13 +424,13 @@ Cron jobs can be run as any user on the system; keep an eye on Cron jobs that ha
 
 A stealthy way to exploit it could be to give a previously pwned user sudo privileges
 
-### Exploiting SUID Binaries
+#### Exploiting SUID Binaries
 
 When applied, SUID permission provides users with the ability to execute a script or binary with the permissions of the file owner as opposed to the user that is running the script or binary. 
 
 - SUID permissions are typically used to provide unprivileged users with the ability to run specific scripts or binaries with “root” permissions. It is to be noted, however, that the provision of elevate privileges is limited to the execution of the script and does not translate to elevation of privileges, however, if improperly configured unprivileged users can exploit misconfigurations or vulnerabilities within the binary or script to obtain an elevated session.
 
-## Linux Credential Dumping
+### Linux Credential Dumping
 
 Linux has multi-user support and as a result, multiple users can access the system simultaneously. 
 
@@ -447,11 +443,11 @@ The passwd file gives us information in regards to the hashing algorithm that is
 | $5    | SHA-256            |
 | $6    | SHA-512            |
 
-# Metasploit Framework
+## Metasploit Framework
 
-## Architecture
+### Architecture
 
-![[metasploit-architecture.png]]
+![metasploit-architecture](../../images/certifications/inesecurity/ejpt/metasploit-architecture.png)
 
 A module in the context of MSF, is a piece of code that can be utilized by the MSF. Its execution is facilitated by MSF libraries.
 
@@ -473,7 +469,7 @@ payload that is executed in memory on the target system making it difficult to
 detect.
 It communicates over a stager socket and provides an attacker with an interactive command interpreter on the target system that facilitates the execution of system commands, file system navigation, keylogging and much more.
 
-## Penetration Testing with MSF
+### Penetration Testing with MSF
 
 | Penetration Testing Phase | Metasploit Framework Implementation |
 | ---- | ---- |
@@ -483,15 +479,15 @@ It communicates over a stager socket and provides an attacker with an interactiv
 | Post Exploitation<br> | Meterpreter |
 | Privilege Escalation | Post Exploitation Modules<br>Meterpreter |
 | Maintaining Persistent Access & Clearing Tracks | Post Exploitation Modules<br>Persistence Modules |
-## MSF Workspaces
+### MSF Workspaces
 
 Workspaces allow you to keep track of all your hosts, scans and activities and are extremely useful when conducting penetration tests as they allow you to sort and organize your data based on the target or organization.
 
-## MSF: WMAP
+### MSF: WMAP
 
 WMAP is a powerful, feature-rich web application vulnerability scanner that can be used to automate web server enumeration and scan web applications for vulnerabilities.
 
-## Meterpreter
+### Meterpreter
 
 Sometimes, Meterpreter process has to be migrated in order to:
 
@@ -499,7 +495,7 @@ Sometimes, Meterpreter process has to be migrated in order to:
 - Change the process architecture to execute some payloads with the corrent architecture. For example, if there is a 64-bits system and our meterpreter process is 86-bits, some architecture-related problems could happen if we try to execute some exploits against the session gained.
 - Migrate to a more stable process
 
-## MSF: Windows Post-Exploitation Modules
+### MSF: Windows Post-Exploitation Modules
 
 The Windows OS stores and catalogs all actions/events performed on the system and stores them in the Windows Event log.
 
@@ -519,9 +515,9 @@ We can utilise these post exploitation modules to enumerate information about th
 - Enumerate installed patches
 - Enumerate shares
 
-#  Host & Network Penetration Testing: Exploitation
+##  Host & Network Penetration Testing: Exploitation
 
-## AV Evasion & Obfuscation
+### AV Evasion & Obfuscation
 
 AV software will typically utilize signature, heuristic and behaviour based detection.
 
@@ -542,17 +538,17 @@ AV software will typically utilize signature, heuristic and behaviour based dete
 - Injects payload into a process by leveraging various Windows APIs.
 - Payload is then executed in memory in a separate thread.
 
-#### Shellter
+##### Shellter
 
 Shellter is a dynamic shellcode injection tool that can be used in order to inject shellcode into native Windows applications - see [there](https://www.shellterproject.com/).
-#### Invoke-Obfuscation
+##### Invoke-Obfuscation
 
 Invoke-Obfuscation is an open source PowerShell v2.0+ compatible PowerShell command and script obfuscator. - see [there](https://github.com/danielbohannon/Invoke-Obfuscation).
 
 
-#  Host & Network Penetration Testing: Post-Exploitation
+##  Host & Network Penetration Testing: Post-Exploitation
 
-![[post-exploitation-methodology.png]]
+![post-exploitation-methodology](../../images/certifications/inesecurity/ejpt/post-exploitation-methodology.png)
 
 
 1 - Local Enumeration

@@ -1,7 +1,4 @@
-Title: Goals
-Slug: personal/goals
-Date: 1957-01-01 00:00
-Category: Personal
+# Goals
 
 - Practice
 {goal-group}

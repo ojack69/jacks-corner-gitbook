@@ -1,7 +1,4 @@
-Title: MobileHackingLab - Captain Nohook
-Slug: mobile/mobilehackinglab/captain-nohook
-Date: 2025-09-25 18:00
-Category: Mobile
+# MobileHackingLab - Captain Nohook
 
 This is an iOS mobile challenge from [MobileHackingLabs](https://www.mobilehackinglab.com/course/lab-captain-nohook).
 
@@ -11,11 +8,11 @@ Captain No Hook employs mechanisms to prevent dynamic analysis tools to hook and
 
 The app presents itself as follows:
 
-![[captain-nohook-mobile-1.jpg]]
+![captain-nohook-mobile-1](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-mobile-1.jpg)
 
 When clicking on "Flag'ere!" the following error message is returned since I'm using a jailbroken device with a running `frida-server` instance:
 
-![[captain-nohook-mobile-2.jpg]]
+![captain-nohook-mobile-2](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-mobile-2.jpg)
 
 ## Static Analysis
 
@@ -23,20 +20,20 @@ The first step has been to reverse engineer the application to understand what p
 
 First, obtain the classes definition with `ipsw`:
 
-~~~shell
+```shell
 ipsw swift-dump --demangle Payload/Captain\ Nohook.app/Captain\ Nohook > classes.swift
-~~~
+```
 
 
-![[captain-nohook-decompile-1.png]]
+![captain-nohook-decompile-1](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-decompile-1.png)
 
 Class `Captain_Nohook.ViewController` has some interesting methods:
 
-![[captain-nohook-decompile-2.png]]
+![captain-nohook-decompile-2](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-decompile-2.png)
 
 Function `getFlag` has been reverse using `Ghidra`, resulting in the following code:
 
-~~~c
+```c
 String \_\_thiscall Captain_Nohook::ViewController::getFlag(ViewController \*this)
 
 {
@@ -541,7 +538,7 @@ SVar19.bridgeObject = local_400;
 SVar19.str = local_408;
 return SVar19;
 }
-~~~
+```
 
 The analysis of this code highlighted the following points:
 
@@ -553,19 +550,19 @@ The analysis of this code highlighted the following points:
 
 Encrypted hardcoded flag:
 
-![[captain-nohook-10.png]]
+![captain-nohook-10](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-10.png)
 
 Hardcoded secret key:
 
-![[captain-nohook-11.png]]
+![captain-nohook-11](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-11.png)
 
 `is_noncompliant_device` method check. The application exits when the check returns `true`:
 
-![[captain-nohook-get-flag-anti-reversing-1.png]]
+![captain-nohook-get-flag-anti-reversing-1](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-get-flag-anti-reversing-1.png)
 
 Following the `is_noncompliant_device` method implementation:
 
-~~~c
+```c
 
 /* Captain_Nohook.is_noncompliant_device() -> Swift.Bool */
 
@@ -579,10 +576,10 @@ bool Captain_Nohook::is_noncompliant_device(void)
   bVar1 = ReverseEngineeringToolsChecker::amIReverseEngineered(this);
   return bVar1;
 }
-~~~
+```
 
 
-![[captain-nohook-get-flag-anti-reversing-2.png]]
+![captain-nohook-get-flag-anti-reversing-2](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-get-flag-anti-reversing-2.png)
 
 ## Solution: Static Approach
 
@@ -595,29 +592,29 @@ In order to bypass the anti-reverse engineering checks, I'll hook the function `
 
 Connect to  `frida-server`:
 
-~~~
+```
 frida -U -n 'Captain Nohook'
-~~~
+```
 
 Enumerate all modules by keyword `Captain`:
 
-~~~frida
+```frida
 > Process.enumerateModulesSync().filter(x=>x.name.includes('Captain'))
-~~~
+```
 
-![[captain-nohook-frida-1.png]]
+![captain-nohook-frida-1](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-frida-1.png)
 
 Enumerate all functions containing the keyword `compliant`:
 
-~~~frida
+```frida
 > Process.getModuleByName('Captain Nohook').enumerateExports().filter(x=>x.name.includes('compliant'))
-~~~
+```
 
-![[captain-nohook-frida-2.png]]
+![captain-nohook-frida-2](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-frida-2.png)
 
 The following Frida script hooks the target function and forces its return value to `false`:
 
-~~~javascript
+```javascript
 const lib = "Captain Nohook";
 const antiRevFunc = "$s14Captain_Nohook22is_noncompliant_deviceSbyF";
 
@@ -630,38 +627,38 @@ Interceptor.attach(Module.findExportByName(lib, antiRevFunc), {
         retval.replace(0) // Replace return value
     }
 });
-~~~
+```
 
 Load the script into `frida`:
 
-~~~frida
+```frida
 > %load ../bypass.js
-~~~
+```
 
 Click on  "Flag'ere!"; note that the no error message is returned, indicating that anti-reversing checks have been successfully bypassed, but the flag isn't still shown:
 
-![[captain-nohook-mobile-3.jpg]]
+![captain-nohook-mobile-3](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-mobile-3.jpg)
 
 
-![[captain-nohook-frida-3.png]]
+![captain-nohook-frida-3](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-frida-3.png)
 
 Analysing the reversed code, after clicking the "Flag'ere!" button, the flag value should be set into a `Captain_Nohook.ViewController` member field. The simplest way to get the flag is to ask the ViewController to return it (kindness always helps).
 
 Enumerate `Captain_Nohook.ViewController` current instance's methods signatures and fields:
 
-~~~frida
+```frida
 > ObjC.choose(ObjC.classes['Captain_Nohook.ViewController'],{onMatch:(instance)=>{console.log(instance.$ownMethods)}, onComplete: ()=>{}})
 
 > ObjC.choose(ObjC.classes['Captain_Nohook.ViewController'],{onMatch:(instance)=>{console.log(instance['- flag']())}, onComplete: ()=>{}})
-~~~
+```
 
-![[captain-nohook-frida-4.png]]
+![captain-nohook-frida-4](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-frida-4.png)
 
 Flags is therefore stored in the UILabel returned by invoking `flag()` on `Captain_Nohook.ViewController`. 
 
 The following `frida` script solves the challenge, bypassing anti-reversing checks and retrieving the flag:
 
-~~~javascript
+```javascript
 const lib = "Captain Nohook";
 const antiRevFunc = "$s14Captain_Nohook22is_noncompliant_deviceSbyF";
 const flagClass = 'Captain_Nohook.ViewController';
@@ -686,15 +683,15 @@ function getFlag(){
         }
     })
 }
-~~~
+```
 
 Retrieve the flag:
 
-~~~frida
+```frida
 > getFlag()
-~~~
+```
 
-![[captain-nohook-frida-5.png]]
+![captain-nohook-frida-5](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-frida-5.png)
 **Note**: "Flag'ere!" button must be clicked before executing `getFlag()` in order to the flag being actually loaded into `Captain_Nohook.ViewController`.
 
 ## Extended Analysis
@@ -705,11 +702,11 @@ Function `is_noncompliant_device` invokes the method `ReverseEngineeringToolsChe
 
 - In the future I plan to produce a new writeup with this solution. 
 
-![[captain-nohook-4.png]]
+![captain-nohook-4](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-4.png)
 
 Following the complete reversed code of this function:
 
-~~~c
+```c
 /* static Captain_Nohook.ReverseEngineeringToolsChecker.amIReverseEngineered() -> Swift.Bool */
 
 bool __thiscall
@@ -725,11 +722,11 @@ Captain_Nohook::ReverseEngineeringToolsChecker::amIReverseEngineered
   _swift_bridgeObjectRelease(in_x1);
   return (bool)((in_w0 ^ 1) & 1);
 }
-~~~
+```
 
-![[captain-nohook-decompile-3.png]]
+![captain-nohook-decompile-3](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-decompile-3.png)
 
-~~~c
+```c
 undefined1  [16]
 $$static_Captain_Nohook.ReverseEngineeringToolsChecker.(performChecks_in__75B14952DDFE2A78282659A6E0 04BB4A)()_->_Captain_Nohook.ReverseEngineeringToolsChecker.ReverseEngineeringToolsStatus
           (void)
@@ -871,15 +868,15 @@ PerformAntiReversingChecks:
 switchD_10000d7dc_caseD_2:
   goto PerformAntiReversingChecks;
 }
-~~~
+```
 
 Anti-reversing checks implemented are the following.
 
-![[captain-nohook-5.png]]
+![captain-nohook-5](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-5.png)
 ### Suspicious files
 
 
-~~~c
+```c
 undefined4
 $$static_Captain_Nohook.ReverseEngineeringToolsChecker.(checkExistenceOfSuspiciousFiles_in__75B14952 DDFE2A78282659A6E004BB4A)()_->_(passed:_Swift.Bool,failMessage:_Swift.String)
           (void)
@@ -985,9 +982,9 @@ $$static_Captain_Nohook.ReverseEngineeringToolsChecker.(checkExistenceOfSuspicio
   return 0;
 }
 
-~~~
+```
 
-![[captain-nohook-6.png]]
+![captain-nohook-6](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-6.png)
 
 This code checks if the `frida-server` binary is present on the file system at the path `/user/sbin/frida-server`.
 
@@ -995,7 +992,7 @@ This code checks if the `frida-server` binary is present on the file system at t
 ### Dynamic Debug Libraries
 
 
-~~~c
+```c
 
 /* WARNING: Heritage AFTER dead removal. Example location: x0 : 0x00010000df2c */
 /* WARNING: Restarted to delay deadcode elimination for space: register */
@@ -1165,9 +1162,9 @@ $$static_Captain_Nohook.ReverseEngineeringToolsChecker.(checkDYLD_in__75B14952DD
 }
 
 
-~~~
+```
 
-![[captain-nohook-7.png]]
+![captain-nohook-7](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-7.png)
 
 This code checks if the following dynamic libraries are loaded:
 
@@ -1180,7 +1177,7 @@ This code checks if the following dynamic libraries are loaded:
 
 ### Local Ports Open
 
-~~~c
+```c
 undefined4
 $$static_Captain_Nohook.ReverseEngineeringToolsChecker.(checkOpenedPorts_in__75B14952DDFE2A78282659A 6E004BB4A)()_->_(passed:_Swift.Bool,failMessage:_Swift.String)
           (void)
@@ -1267,9 +1264,9 @@ $$static_Captain_Nohook.ReverseEngineeringToolsChecker.(checkOpenedPorts_in__75B
   _swift_bridgeObjectRelease(uVar3);
   return 0;
 }
-~~~
+```
 
-![[captain-nohook-8.png]]
+![captain-nohook-8](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-8.png)
 
 This code checks if following local ports are opened and reachable:
 
@@ -1281,7 +1278,7 @@ This code checks if following local ports are opened and reachable:
 
 ### Process Permissions
 
-~~~c
+```c
 
 /* WARNING: Removing unreachable block (ram,0x00010000f0c8) */
 /* WARNING: Removing unreachable block (ram,0x00010000ec50) */
@@ -1527,10 +1524,10 @@ LAB_10000eb84:
   }
   return bVar3;
 }
-~~~
+```
 
 
-![[captain-nohook-9.png]]
+![captain-nohook-9](../../images/mobile/mobilehackinglab/captain-nohook/captain-nohook-9.png)
 
 This code uses the `sysctl` system call to examine process flags, specifically looking for debugging/tracing capabilities.
 

