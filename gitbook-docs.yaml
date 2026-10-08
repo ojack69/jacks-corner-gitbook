@@ -3,18 +3,18 @@ site:
   title: Jack's Corner
   structure:
     - type: space
-      key: space-ad
-      title: Active Directory
-      path: ad
-      default: true
-      content:
-        directory: ./ad
-    - type: space
       key: space-ai
       title: AI
       path: ai
+      default: true
       content:
         directory: ./ai
+    - type: space
+      key: space-ad
+      title: Active Directory
+      path: ad
+      content:
+        directory: ./ad
     - type: space
       key: space-binary-exploitation
       title: Binary Exploitation
