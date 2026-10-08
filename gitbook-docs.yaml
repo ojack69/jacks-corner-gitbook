@@ -1,0 +1,84 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+version: 1
+site:
+  title: "Jack's Corner"
+  structure:
+    - type: space
+      key: space-ad
+      title: Active Directory
+      path: ad
+      default: true
+      content:
+        directory: ./ad
+    - type: space
+      key: space-ai
+      title: AI
+      path: ai
+      content:
+        directory: ./ai
+    - type: space
+      key: space-binary-exploitation
+      title: Binary Exploitation
+      path: binary-exploitation
+      content:
+        directory: ./binary-exploitation
+    - type: space
+      key: space-books
+      title: Books
+      path: books
+      content:
+        directory: ./books
+    - type: space
+      key: space-certifications
+      title: Certifications
+      path: certifications
+      content:
+        directory: ./certifications
+    - type: space
+      key: space-cloud
+      title: Cloud
+      path: cloud
+      content:
+        directory: ./cloud
+    - type: space
+      key: space-ctf
+      title: CTF
+      path: ctf
+      content:
+        directory: ./ctf
+    - type: space
+      key: space-misc
+      title: Misc
+      path: misc
+      content:
+        directory: ./misc
+    - type: space
+      key: space-mobile
+      title: Mobile
+      path: mobile
+      content:
+        directory: ./mobile
+    - type: space
+      key: space-personal
+      title: Personal
+      path: personal
+      content:
+        directory: ./personal
+    - type: space
+      key: space-privilege-escalation
+      title: Privilege Escalation
+      path: privilege-escalation
+      content:
+        directory: ./privilege-escalation
+    - type: space
+      key: space-reversing
+      title: Reversing
+      path: reversing
+      content:
+        directory: ./reversing
+    - type: space
+      key: space-web
+      title: Web
+      path: web
+      content:
+        directory: ./web
