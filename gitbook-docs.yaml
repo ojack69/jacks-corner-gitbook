@@ -1,7 +1,6 @@
 $schema: https://api.gitbook.com/gitbook-docs.yaml
-version: 1
 site:
-  title: "Jack's Corner"
+  title: Jack's Corner
   structure:
     - type: space
       key: space-ad
