@@ -3,10 +3,16 @@ site:
   title: Jack's Corner
   structure:
     - type: space
+      key: space-home
+      title: Home
+      path: home
+      default: true
+      content:
+        directory: ./home
+    - type: space
       key: space-ai
       title: AI
       path: ai
-      default: true
       content:
         directory: ./ai
     - type: space
