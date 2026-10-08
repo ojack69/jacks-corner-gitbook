@@ -2,20 +2,24 @@
 
 Running checksec against the binary:
 
->\> checksec ./ninipwn  
->\[\*] './ninipwn'  
-    Arch:     amd64-64-little  
-    RELRO:    Full RELRO  
-    Stack:    **Canary found**  
-    NX:       NX enabled  
-    PIE:      PIE enabled  
+```
+> checksec ./ninipwn
+[*] './ninipwn'
+    Arch:     amd64-64-little
+    RELRO:    Full RELRO
+    Stack:    Canary found
+    NX:       NX enabled
+    PIE:      PIE enabled
+```
 
 the binary has all security settings enabled.
 
 Running the binary with gdb and listing available symbols\*:
 
->\> gdb ./ninipwn  
->\> info symbol // then TAB TAB
+```
+> gdb ./ninipwn
+> info symbol // then TAB TAB
+```
 
 Some interesting symbols are found:
 

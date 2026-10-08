@@ -39,11 +39,13 @@
 
 Example:
 
->~12 = -13  
-~12 = ~00001100 = 11110011 = -13  
-13 = 00001101   
-~13 = 11110010  
--13 = ~13 + 1 = 11110011  
+```
+~12 = -13
+~12 = ~00001100 = 11110011 = -13
+13 = 00001101
+~13 = 11110010
+-13 = ~13 + 1 = 11110011
+```
 
 #### Bitwise AND
 | V1  | V2  | Reults |
@@ -55,8 +57,10 @@ Example:
 
 Example:
 
->12 & 13 = 12  
-00001100 & 00001101 = 00001100  
+```
+12 & 13 = 12
+00001100 & 00001101 = 00001100
+```
 
 #### Bitwise OR
 | V1  | V2  | Reults |
@@ -68,8 +72,10 @@ Example:
 
 Example:
 
->12 | 13 = 13  
-00001100 & 00001101 = 00001101  
+```
+12 | 13 = 13
+00001100 & 00001101 = 00001101
+```
 
 #### Bitwise XOR
 | V1  | V2  | Reults |
@@ -81,22 +87,28 @@ Example:
 
 Example:
 
-> 12 ^ 13 = 1  
-00001100 ^ 00001101 = 00000001  
+```
+12 ^ 13 = 1
+00001100 ^ 00001101 = 00000001
+```
 
 #### Left Shift
 
 Example:
 
->10 << 2 = 40  
-00001010 << 2 = 00101000  
+```
+10 << 2 = 40
+00001010 << 2 = 00101000
+```
 
 #### Left Shift
 
 Example:
 
->10 >> 2 = 2  
->00000010 >> 2 = 2  
+```
+10 >> 2 = 2
+00000010 >> 2 = 2
+```
 
 
 ### Bitwise Algorithms
@@ -106,9 +118,13 @@ Unlike shift operations where the left-most (left shift) or right-most (right sh
 
 If `n` is the input sequence of bit and `d` is the number of bit to rotate:
 
->Left Rotation(n,d) = n << d |  n >> (TOTAL_BYTES - d)
+```
+Left Rotation(n,d) = n << d |  n >> (TOTAL_BYTES - d)
+```
 
->Right Rotation(n,d) =   n >>  d |  n << (TOTAL_BYTES - d) 
+```
+Right Rotation(n,d) =   n >>  d |  n << (TOTAL_BYTES - d)
+```
 
 
 ## Assembly
