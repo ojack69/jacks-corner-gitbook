@@ -1,0 +1,90 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0" version="26.0.2">
+  <diagram name="Page-1" id="EBb8xlOAwTuthm7l0yq7">
+    <mxGraphModel dx="989" dy="514" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="kszR8PfasbyppvPuqVct-7" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="147" y="100" width="140" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-5" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="421" y="100" width="116" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-1" value="" style="sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;fillColor=#00188D;shape=mxgraph.azure.computer" vertex="1" parent="1">
+          <mxGeometry x="185" y="282.87" width="50" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-2" value="" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=3;image=img/lib/active_directory/database_server.svg;" vertex="1" parent="1">
+          <mxGeometry x="440" y="270" width="58" height="70.74" as="geometry" />
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-3" value="" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=3;image=img/lib/active_directory/generic_server.svg;" vertex="1" parent="1">
+          <mxGeometry x="190" y="110" width="40" height="71.43" as="geometry" />
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-4" value="" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=3;image=img/lib/active_directory/generic_server.svg;" vertex="1" parent="1">
+          <mxGeometry x="449" y="110" width="40" height="71.43" as="geometry" />
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-8" value="Domain A" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="180" y="360" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-9" value="Domain B" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="449" y="360" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-10" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.02;exitY=0.02;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=1;entryDx=0;entryDy=0;startArrow=classic;startFill=1;" edge="1" parent="1" source="kszR8PfasbyppvPuqVct-1" target="kszR8PfasbyppvPuqVct-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="330" y="420" as="sourcePoint" />
+            <mxPoint x="410" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-11" value="&lt;div&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;1. Req TGT&lt;br&gt;2. Recv TGT&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" vertex="1" connectable="0" parent="kszR8PfasbyppvPuqVct-10">
+          <mxGeometry x="-0.2572" y="-1" relative="1" as="geometry">
+            <mxPoint x="-21" y="-42" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-16" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;startArrow=classic;startFill=1;" edge="1" parent="1" source="kszR8PfasbyppvPuqVct-1" target="kszR8PfasbyppvPuqVct-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="196" y="294" as="sourcePoint" />
+            <mxPoint x="206" y="181" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-17" value="&lt;div&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;3. Req TGS for domain B&lt;br&gt;4. Recv inter-realm TGT&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" vertex="1" connectable="0" parent="kszR8PfasbyppvPuqVct-16">
+          <mxGeometry x="-0.2572" y="-1" relative="1" as="geometry">
+            <mxPoint x="46" y="-14" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-18" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.98;entryY=0.02;entryDx=0;entryDy=0;startArrow=classic;startFill=1;entryPerimeter=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="kszR8PfasbyppvPuqVct-4" target="kszR8PfasbyppvPuqVct-1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="250" y="305" as="sourcePoint" />
+            <mxPoint x="259" y="200" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-19" value="&lt;div&gt;&lt;font style=&quot;font-size: 8px;&quot;&gt;5. Req TGS with inter-realm TGT&lt;br&gt;6. Recv TGS&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" vertex="1" connectable="0" parent="kszR8PfasbyppvPuqVct-18">
+          <mxGeometry x="-0.2572" y="-1" relative="1" as="geometry">
+            <mxPoint x="-9" y="66" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-20" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="kszR8PfasbyppvPuqVct-1" target="kszR8PfasbyppvPuqVct-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="360" y="370" as="sourcePoint" />
+            <mxPoint x="410" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-21" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;7. Access service with TGS&lt;br&gt;&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=none;" vertex="1" connectable="0" parent="kszR8PfasbyppvPuqVct-20">
+          <mxGeometry x="0.3268" y="1" relative="1" as="geometry">
+            <mxPoint x="-31" y="6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-30" value="DCa" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;" vertex="1" parent="1">
+          <mxGeometry x="210" y="110" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-31" value="DCb" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;" vertex="1" parent="1">
+          <mxGeometry x="470" y="110" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-32" value="&lt;div&gt;Application&lt;/div&gt;&lt;div&gt;Server&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;" vertex="1" parent="1">
+          <mxGeometry x="480" y="282.87" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kszR8PfasbyppvPuqVct-33" value="Client" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=8;" vertex="1" parent="1">
+          <mxGeometry x="180" y="327.87" width="60" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

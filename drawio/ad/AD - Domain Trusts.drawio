@@ -1,0 +1,110 @@
+<mxfile host="app.diagrams.net" modified="2024-10-14T20:02:15.459Z" agent="Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0" etag="6qO7r0z8rpF6jyaju3fs" version="23.1.6" type="device">
+  <diagram name="Page-1" id="okGR8-6fDG_PyVAYufkz">
+    <mxGraphModel dx="988" dy="541" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-1" value="B" style="triangle;whiteSpace=wrap;html=1;direction=north;" vertex="1" parent="1">
+          <mxGeometry x="520" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-2" value="A" style="triangle;whiteSpace=wrap;html=1;direction=north;" vertex="1" parent="1">
+          <mxGeometry x="240" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-3" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="337" y="36" as="sourcePoint" />
+            <mxPoint x="507" y="36" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-4" value="Trusts" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="HuvyBcWC1s0RW6xUbkJI-3">
+          <mxGeometry x="-0.0941" y="-3" relative="1" as="geometry">
+            <mxPoint x="6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-5" value="B" style="triangle;whiteSpace=wrap;html=1;direction=north;" vertex="1" parent="1">
+          <mxGeometry x="520" y="120" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-6" value="A" style="triangle;whiteSpace=wrap;html=1;direction=north;" vertex="1" parent="1">
+          <mxGeometry x="240" y="120" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-9" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="340" y="169" as="sourcePoint" />
+            <mxPoint x="510" y="169" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-16" value="Trust each other&lt;br&gt;/ Access each other&lt;br&gt;resource" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="HuvyBcWC1s0RW6xUbkJI-9">
+          <mxGeometry x="-0.0471" y="2" relative="1" as="geometry">
+            <mxPoint x="4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-21" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="507" y="60" as="sourcePoint" />
+            <mxPoint x="337" y="60" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-22" value="Access Resources" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="HuvyBcWC1s0RW6xUbkJI-21">
+          <mxGeometry x="-0.0941" y="-3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-27" value="One-way Trust (Directional)&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="130" y="25" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-28" value="Two-way Trust (Directional)&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="130" y="145" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-36" value="B" style="triangle;whiteSpace=wrap;html=1;direction=north;" vertex="1" parent="1">
+          <mxGeometry x="380" y="240" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-37" value="A" style="triangle;whiteSpace=wrap;html=1;direction=north;" vertex="1" parent="1">
+          <mxGeometry x="100" y="240" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-42" value="C" style="triangle;whiteSpace=wrap;html=1;direction=north;" vertex="1" parent="1">
+          <mxGeometry x="651" y="240" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-47" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="190" y="279.76" as="sourcePoint" />
+            <mxPoint x="360" y="279.76" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-48" value="Trust each other&lt;br&gt;/ Access each other&lt;br&gt;resource" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="HuvyBcWC1s0RW6xUbkJI-47">
+          <mxGeometry x="-0.0471" y="2" relative="1" as="geometry">
+            <mxPoint x="9" y="2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-49" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="473" y="279.76" as="sourcePoint" />
+            <mxPoint x="643" y="279.76" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-50" value="Trust each other&lt;br&gt;/ Access each other&lt;br&gt;resource" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="HuvyBcWC1s0RW6xUbkJI-49">
+          <mxGeometry x="-0.0471" y="2" relative="1" as="geometry">
+            <mxPoint x="6" y="2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-51" value="Transitive Trust" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="10" y="265" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-53" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" parent="1" source="HuvyBcWC1s0RW6xUbkJI-37" target="HuvyBcWC1s0RW6xUbkJI-42">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="340" y="370" as="sourcePoint" />
+            <mxPoint x="510" y="370" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="140" y="360" />
+              <mxPoint x="691" y="360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="HuvyBcWC1s0RW6xUbkJI-54" value="Trust each other&lt;br&gt;/ Access each other&lt;br&gt;resource" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="HuvyBcWC1s0RW6xUbkJI-53">
+          <mxGeometry x="-0.0471" y="2" relative="1" as="geometry">
+            <mxPoint x="20" y="2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
