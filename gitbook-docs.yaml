@@ -10,17 +10,17 @@ site:
       content:
         directory: ./home
     - type: space
-      key: space-ai
-      title: AI
-      path: ai
-      content:
-        directory: ./ai
-    - type: space
       key: space-ad
       title: Active Directory
       path: ad
       content:
         directory: ./ad
+    - type: space
+      key: space-ai
+      title: AI
+      path: ai
+      content:
+        directory: ./ai
     - type: space
       key: space-binary-exploitation
       title: Binary Exploitation
