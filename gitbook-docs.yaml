@@ -64,17 +64,17 @@ site:
       content:
         directory: ./mobile
     - type: space
-      key: space-personal
-      title: Personal
-      path: personal
-      content:
-        directory: ./personal
-    - type: space
       key: space-privilege-escalation
       title: Privilege Escalation
       path: privilege-escalation
       content:
         directory: ./privilege-escalation
+    - type: space
+      key: space-redteaming
+      title: Red Teaming
+      path: red-teaming
+      content:
+        directory: ./red-teaming
     - type: space
       key: space-reversing
       title: Reversing
