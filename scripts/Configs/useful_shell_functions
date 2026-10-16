@@ -1,0 +1,36 @@
+alias "grep_ip=grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | sort | uniq"
+alias "grep_host=grep -Eo '([_a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}' | sort | uniq" 
+
+# Custom functions
+function outjoinl(){
+    if [ -z "$1" ] || [ -z "$2" ]; then
+        echo "Usage: outjoinl file1 file2"
+        return
+    fi
+    comm -32 <(cat "$1" | sort) <(cat "$2" | sort) | sed 's|\s||g'
+}
+
+function outjoinr(){
+    if [ -z "$1" ] || [ -z "$2" ]; then
+        echo "Usage: outjoinr file1 file2"
+        return
+    fi
+    comm -31 <(cat "$1" | sort) <(cat "$2" | sort) | sed 's|\s||g'
+}
+
+
+function outjoin(){
+    if [ -z "$1" ] || [ -z "$2" ]; then
+        echo "Usage: outjoin file1 file2"
+        return
+    fi
+    comm -3 <(cat "$1" | sort) <(cat "$2" | sort) | sed 's|\s||g'
+}
+
+function innerjoin(){
+    if [ -z "$1" ] || [ -z "$2" ]; then
+        echo "Usage: innerjoin file1 file2"
+        return
+    fi
+    comm -12 <(cat "$1" | sort) <(cat "$2" | sort) | sed 's|\s||g'
+}

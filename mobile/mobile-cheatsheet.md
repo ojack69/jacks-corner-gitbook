@@ -208,6 +208,11 @@ Useful Magisk plugins:
 - Burp Certificate Pinning: [https://github.com/pwnlogs/cert-fixer](https://github.com/pwnlogs/cert-fixer)
 - Frida Server: [https://github.com/ViRb3/magisk-frida](https://github.com/ViRb3/magisk-frida)
 
+```shell
+> adb  shell
+> magisk --install-module <module zip>
+```
+
 ### Patch APK with frida gadget
 
 Reference: [https://koz.io/using-frida-on-android-without-root/](https://koz.io/using-frida-on-android-without-root/)
@@ -298,8 +303,6 @@ When other applications are not visible to yours, use the `<queries>` tag in the
     <package android:name="<target application package name>" />    
 </queries>
 ```
-
-
 
 **Note: an activity with an intent-filter is automatically exported by default !**
 
@@ -535,6 +538,23 @@ Interesting paths:
 | `/mmt/adcard`                         | External/Internal SD Card |
 | `/mmt/adcard/external_sd`             | External SD Card          |
 
+#### Device Info
+
+```shell
+# When not specifying any property, it will list every available property 
+adb shell getprop [<property>]
+```
+
+Interesting properties:
+
+- `ro.product.model`: Device Model
+- `ro.product.brand`: Brand
+- `ro.product.manufacturer`: Manufacturer
+- `ro.build.version.release`: Android Version
+- `ro.build.id`: Build ID
+- `ro.build.version.sdk`: SDK Version
+- `ro.build.date`: Build Date
+- `ro.serialno`: Device Serial Number
 #### Packages Info
 
 Dump package info:
@@ -542,7 +562,6 @@ Dump package info:
 ```shell
 [adb shell] pm dump <package name>
 ```
-
 
 Path to the APK for the specified package:
 
@@ -1573,11 +1592,23 @@ strings <binary> | grep -i "WKWebView"
 strings <binary> | grep -i "SFSafariViewController"
 ```
 
+Check if obfuscation is implemented: 
+
+```shell
+ipsw swift-dump <binary> | grep -E 'Controller|Repository|Service|ViewModel' 
+# ObjC Can be noisy
+ipsw class-dump <binary> | grep -E 'Controller|Repository|Service|ViewModel' 
+
+# Filter out common third-party/native ObjC classes
+grep -vE '(\[|@|@"||@"<|@_|@protocol |@interface )(NSNumber|NSMutableDictionary|NSMapTable|UIImage|UIView|UICollection|UITable|UIScrollView|ODC|APM|FGM|GMS|GMU|FIRA)|@property'
+```
+
+- **Beware**: there may be references to third-party classes from external frameworks; look for class names which are likely to correspond to first-party code. Then check if the corresponding reversed code (e.g. using `Ghidra`) is readable/understandable.
+
 Cross-compile a dynamic library from MacOS for iOS:  
 
 ```shell
-clang -arch arm64 -miphoneos-version-min=15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -dynamiclib -install_name @rpath/libexampl  
-e.dylib License.c -o license.dylib
+clang -arch arm64 -miphoneos-version-min=15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -dynamiclib License.c -o license.dylib
 ```
 
 #### Objective-C Analysis
@@ -2305,13 +2336,29 @@ Flutter does not use system proxy configuration and it doesnâ€™t use the systemâ
 Another alternative is this script generated with Claude, which merges SSL Pinning bypass technique from [https://github.com/NVISOsecurity/disable-flutter-tls-verification](https://github.com/NVISOsecurity/disable-flutter-tls-verification) with the proxying from [frida-flutterproxy](https://github.com/hackcatml/frida-flutterproxy):
 
 - [flutter-tls-bypass-and-proxy.js](https://github.com/ojack69/jacks-corner/tree/main/scripts/Misc)
-### Flutter enumeration
+### Flutter Reversing
 
-Dump flutter packages, after unpacking the APK:  
+Dump flutter packages, after unpacking the APK/IPA:  
 
 ```shell
-strings libapp.so | grep package:
+# Android
+strings lib/arm64-v8a/libapp.so | grep package: | cut -d '/' -f 1 | sort | uniq 
+
+# iOS
+strings Frameworks/App.framework/App | grep package: | cut -d '/' -f 1 | sort | uniq 
 ```
+
+Check if iOS app is obfuscated:
+
+```shell 
+strings Frameworks/App.framework/App | grep -E 'Controller|Repository|Service|ViewModel'
+```
+
+- Obfuscation is present if is not possible to recover any class name. 
+- **Beware**: there may be references to third-party classes from external modules or plugins; look for class names which are likely to correspond to first-party code.
+
+**Note**: Flutter obfuscation affects class and methods names but not static strings (e.g. containing hardcoded sensitive information) and may not rename all class members names. - [Flutter Docs - Obfuscate](https://docs.flutter.dev/deployment/obfuscate)
+
 
 ## Frida & Objection
 
@@ -2403,11 +2450,22 @@ objection> android hooking watch class_method <package.class.method> [--dump-bac
 
 Search or write in memory:
 
-```
+```shell
 objection> memory search "<pattern eg: 41 41 41 ?? 41>" (--string) (--offsets-only)
 objection> memory write "<address>" "<pattern eg: 41 41 41 41>" (--string)
 ```
+
 ### Code Snippets
+
+#### Commons
+
+Convert native string pointer to UTF string:
+
+```javascript
+onEnter: function (args) {
+	console.log(args[0].readUtf8String());
+},
+```
 
 Read from and transform to byte array:
 
@@ -2428,20 +2486,6 @@ function toByteArray(str){
     }
     return result
 }
-```
-
-Attach to method implementation:
-
-```javascript
-const func = ObjC.classes[<class>][<method signature>];
-Interceptor.attach(func.implementation,{
-    onEnter: function(args){
-	    // do something
-    },
-    onLeave: function (retval) {
-        // do something
-    }
-});
 ```
 
 Attach to native functions:
@@ -2467,18 +2511,18 @@ Replace native function implementation:
 
 ```javascript
 const strstrPtr = Module.getExportByName('libc.so', 'strstr');
-    const strstr = new NativeFunction(strstrPtr, 'pointer', ['pointer', 'pointer']);
-    Interceptor.replace(strstrPtr, new NativeCallback((haystack, needle) => {
-        const haystackStr = Memory.readUtf8String(haystack);
-        const needleStr = Memory.readUtf8String(needle);
-        
-        console.log(haystackStr);
-        console.log(needleStr);
-        
-        const res = strstr(haystack, needle);
-        return new NativePointer(res);
+const strstr = new NativeFunction(strstrPtr, 'pointer', ['pointer', 'pointer']);
+Interceptor.replace(strstrPtr, new NativeCallback((haystack, needle) => {
+	const haystackStr = Memory.readUtf8String(haystack);
+	const needleStr = Memory.readUtf8String(needle);
+	
+	console.log(haystackStr);
+	console.log(needleStr);
+	
+	const res = strstr(haystack, needle);
+	return new NativePointer(res);
 
-    }, 'pointer', ['pointer', 'pointer']));
+}, 'pointer', ['pointer', 'pointer']));
 ```
 
 Attach to all exported functions of a module:
@@ -2486,18 +2530,18 @@ Attach to all exported functions of a module:
 ```javascript
 const lib = "libfoo.so";
 Module.enumerateExportsSync(lib).map((x) => {
-        if (x.type == "function") {
-            console.log("[!] Attaching to: " + x.name);
-            Interceptor.attach(Module.findExportByName(lib, x.name), {
-                onEnter: function (args) {
-                    console.log("Entering " + x.name);
-                },
-                onLeave: function (retval) {
-                    console.log("Leaving " + x.name);
-                }
-            });
-        }
-    });
+	if (x.type == "function") {
+		console.log("[!] Attaching to: " + x.name);
+		Interceptor.attach(Module.findExportByName(lib, x.name), {
+			onEnter: function (args) {
+				console.log("Entering " + x.name);
+			},
+			onLeave: function (retval) {
+				console.log("Leaving " + x.name);
+			}
+		});
+	}
+});
 ```
 
 Attach to module internal function (not exported):
@@ -2534,128 +2578,21 @@ Interceptor.attach(baseAddress.add(offset), {
 Scan memory for pattern:
 
 ```javascript
- const flagLib = Process.getModuleByName("libflag.so");
-        const res = Memory.scanSync(flagLib.base, flagLib.size, "4d 48 4c 7b"); // Search for MHL{
-        if (res.length > 0) {
-            res.forEach(element => {
-                try{
-                    console.log(Memory.readUtf8String(element.address));    
-                }catch(e){
-                    console.log("[x] Cannot read memory at " + element.address + "as string")
-                }
-                
-            });
-        }
+const flagLib = Process.getModuleByName("libflag.so");
+const res = Memory.scanSync(flagLib.base, flagLib.size, "4d 48 4c 7b"); // Search for MHL{
+if (res.length > 0) {
+	res.forEach(element => {
+		try{
+			console.log(Memory.readUtf8String(element.address));    
+		}catch(e){
+			console.log("[x] Cannot read memory at " + element.address + "as string")
+		}
+		
+	});
+}
 ```
 
 It's possible to use "?" as placeholder.
-
-Attach to an Objective-C class' instance method:
-
-```javascript
-if (ObjC.available) {
-    var targetClass = ObjC.classes['<target class>'];
-
-    Interceptor.attach(targetClass["<method signature>"].implementation, {
-        onLeave: function (retval) {
-			// Do something
-        }
-    });
-}
-
-```
-
-Invoke class instance method - iOS:
-
-```javascript
-ObjC.choose(ObjC.classes['Captain_Nohook.ViewController'],{
-    onMatch: (instance) => {
-        console.log("[!]Flag is: " + instance['- flag']().text())
-    }, 
-    onComplete: () => {
-        // Do nothing
-    }
-})
-```
-
-Invoke class instance method - Android: https://alyagomaa.github.io/blog/Using-Frida-to-call-unused-android-methods/
-
-For iOS, function arguments start from index 2 and can be processed as follows:
-
-```javascript
-onEnter: function(args){
- console.log("[>] Arguments: " + new ObjC.Object(args[2]));;
-},
-```
-
-Initialise a `NSString` object:
-
-```javascript
-var nsstring = ObjC.classes.NSString.stringWithString_("rickfromfrida");
-```
-
-`UIKit` code must be ran on the main thread in order to properly work. The following snippet allows to queue function on the main thread queue:
-
-```javascript
-ObjC.schedule(ObjC.mainQueue, function () {
-    // <-- All UIKit code goes here
-});
-```
-
-Close keyboard (globally) - from ChaptGPT:
-
-```javascript
-function closeKeyboard(){
-    ObjC.schedule(ObjC.mainQueue, function () {
-       const app = ObjC.classes.UIApplication.sharedApplication();
-       var sel = ObjC.selector("resignFirstResponder");
-       // sendAction:to:from:forEvent:
-       app.sendAction_to_from_forEvent_(sel, null, null, null);       
-    })
-}
-```
-
-Close keyboard (globally) invoking `- endEditing:YES`:
-
-```javascript
-function closeKeyboard(f=null){
-    let controllers = Object.keys(ObjC.classes);
-    if(f != null){
-        controllers = controllers.filter(x=>x.includes(f));
-    }
-    controllers.forEach((c, _) => {
-        // Get the active instance for that controller, whether it exists
-        ObjC.choose(ObjC.classes[c],{
-        	onMatch: (instance) => {
-                // use '- endEditing:' for closing the keyboard on the active controller's view
-                ObjC.schedule(ObjC.mainQueue, function () {
-        			instance.view()['- endEditing:']();
-        		})
-        	}, 
-        	onComplete: () => {
-        		// Do nothing
-        	}
-        })
-    })
-}
-```
-
-Close keyboard in specific view invoking `- endEditing:YES` (for iOS):
-
-```javascript
-const controller = ObjC.classes['<controller class name>']
-
-ObjC.choose(controller,{
-	onMatch: (instance) => {
-		ObjC.schedule(ObjC.mainQueue, function () {
-			instance.view()['- endEditing:']()
-		})
-	}, 
-	onComplete: () => {
-		// Do nothing
-	}
-})
-```
 
 Dump `char *arr[]` (array of char pointers):
 
@@ -2705,3 +2642,152 @@ Interceptor.attach(Module.findExportByName('/usr/lib/system/libsystem_kernel.dyl
   }
 });
 ```
+
+#### Android
+
+Override Kotlin `companion`:
+
+```javascript
+const Companion = Java.use('<class>$Companion');
+Companion.<metodName>.implementation = function (args) {
+	// do something
+}
+```
+
+Invoke class instance method - [ref](https://alyagomaa.github.io/blog/Using-Frida-to-call-unused-android-methods/): 
+
+```javascript
+Java.perform(function (){
+	Java.choose("<target class>" , { 
+		onMatch: function(instance){
+			// This function will be called for every instance found by frida
+			console.log("Instance: " + instance );
+			...
+		},
+		onComplete: function(){
+		  //will be called when the method is completed.
+		} 
+	});
+})
+```
+
+#### iOS
+
+Attach to method implementation:
+
+```javascript
+const func = ObjC.classes[<class>][<method signature>];
+Interceptor.attach(func.implementation,{
+    onEnter: function(args){
+	    // do something
+    },
+    onLeave: function (retval) {
+        // do something
+    }
+});
+```
+
+Attach to an Objective-C class' instance method:
+
+```javascript
+if (ObjC.available) {
+    var targetClass = ObjC.classes['<target class>'];
+
+    Interceptor.attach(targetClass["<method signature>"].implementation, {
+        onLeave: function (retval) {
+			// Do something
+        }
+    });
+}
+```
+
+Invoke class instance method - iOS:
+
+```javascript
+ObjC.choose(ObjC.classes['<class>.<instance method>'],{
+    onMatch: (instance) => {
+        console.log("[!]Flag is: " + instance['- flag']().text())
+    }, 
+    onComplete: () => {
+        // Do nothing
+    }
+})
+```
+
+For iOS, function arguments start from index 2 and can be processed as follows:
+
+```javascript
+onEnter: function(args){
+    console.log("[>] Arguments: " + new ObjC.Object(args[2]));;
+},
+```
+
+Initialize a `NSString` object:
+
+```javascript
+var nsstring = ObjC.classes.NSString.stringWithString_("jackfromfrida");
+```
+
+`UIKit` code must be ran on the main thread in order to properly work. The following snippet allows to queue function on the main thread queue:
+
+```javascript
+ObjC.schedule(ObjC.mainQueue, function () {
+    // <-- All UIKit code goes here
+});
+```
+
+Close keyboard (globally):
+
+```javascript
+function closeKeyboard(){
+    ObjC.schedule(ObjC.mainQueue, function () {
+       const app = ObjC.classes.UIApplication.sharedApplication();
+       var sel = ObjC.selector("resignFirstResponder");
+       // sendAction:to:from:forEvent:
+       app.sendAction_to_from_forEvent_(sel, null, null, null);       
+    })
+}
+```
+
+Close keyboard (globally) invoking `- endEditing:YES`:
+
+```javascript
+function closeKeyboard(f=null){
+    let controllers = Object.keys(ObjC.classes);
+    if(f != null){
+        controllers = controllers.filter(x=>x.includes(f));
+    }
+    controllers.forEach((c, _) => {
+        // Get the active instance for that controller, whether it exists
+        ObjC.choose(ObjC.classes[c],{
+        	onMatch: (instance) => {
+                // use '- endEditing:' for closing the keyboard on the active controller's view
+                ObjC.schedule(ObjC.mainQueue, function () {
+        			instance.view()['- endEditing:']();
+        		})
+        	}, 
+        	onComplete: () => {
+        		// Do nothing
+        	}
+        })
+    })
+}
+```
+
+Close keyboard in specific view invoking `- endEditing:YES`:
+
+```javascript
+const controller = ObjC.classes['<controller class name>']
+
+ObjC.choose(controller,{
+	onMatch: (instance) => {
+		ObjC.schedule(ObjC.mainQueue, function () {
+			instance.view()['- endEditing:']()
+		})
+	}, 
+	onComplete: () => {
+		// Do nothing
+	}
+})
+```
+
