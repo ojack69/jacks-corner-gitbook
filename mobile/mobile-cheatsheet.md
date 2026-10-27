@@ -1489,7 +1489,7 @@ vtool -show-build <appname>.app/<appname>
 otool -L <appname>.app/<appname>
 ```
 
-Check runtime paths with `otool`:
+Check runtime paths (`@rpath`) with `otool`:
 
 ```shell
 otool -l <appname>.app/<appname> | grep -A2 RPATH
@@ -1501,11 +1501,34 @@ Get code signature format using `codesign`:
 codesign -dv <.app path>
 ```
 
+Get code signature format using `ipsw`:
+
+```shell
+ipsw macho info --sig <Binary>
+```
+
+- Check the field `Version` - Version `ExecSeg` corresponds to version`0x20400`.4
+
+Check code signature format using [rcodesign](https://gregoryszorc.com/docs/apple-codesign/0.17.0/apple_codesign_getting_started.html):
+
+```shell
+rcodesign print-signature-info <binary>
+```
+
 Check entitlements with `codesign`:
 
 ```shell
 codesign -dvvvv --entitlements :- Payload/MyApp.app/MyApp
 ```
+
+Extract a bunch of binary information such as architecture, linked libraries, rpath, signature, etc:
+
+```shell
+ipsw macho info <binary>
+```
+
+- `@executable_path`: or a standard iOS app, this always points to the root of the `.app` bundle
+- `@loader_path`: if the main app binary is loading a plugin, `@loader_path` is the same as `@executable_path`. If a dynamic framework located in `<app>.app/Frameworks/<Framework>.framework` is loading another sub-library, `@loader_path` points to `<app>.app/Frameworks/<Framework>.framework`.
 
 Check entitlements with `ipsw`:
 
@@ -1514,13 +1537,35 @@ ipsw ent --input <binary> --key <entitlement>
 ipsw macho info -e <binary>
 ```
 
-- If the entitlement `get-task-allow` is present, the application is built with debug symbols.
+- If the entitlement `get-task-allow` is set to `true`, the application should be debuggable.
 
-Check if build with debug symbols using `objdump`:
+Check if built with debug symbols using `objdump`:
 
 ```shell
+# On MacOS
 objdump --syms <binary> | grep "d  "
+
+# On Linux - GNU objdump does not support mach-o binaries
+llvm-objdump --macho --syms <binary> | grep "d  "  
 ```
+
+Check if built with debug symbols using `nm`:
+
+```shell
+# Compare the symbols from a plain call to nm with the output of a call to nm -a. The latter also prints the debug symbols.
+
+# On MacOS
+diff <(nm <binary>) <(nm -a <binary>)
+
+# On Linux
+diff <(llvm-nm <binary>) <(llvm-nm -a <binary>) 
+```
+
+Previous commands may return the following result:
+
+- `0000000005614542      d  *UND* .hidden radr://5614542`
+
+This is a residual marker from the debugging symbols stripping process.
 
 Get Plist content with `plutil`:
 
@@ -1556,6 +1601,12 @@ Search string into binary with `ipsw`:
 
 ```shell
 ipsw macho search <binary> --string "<string to search>"
+```
+
+Get the `@rpath` with `ipsw`:
+
+```shell
+ipsw macho info <binary> | grep LC_RPATH | cut -d " " -f 17 
 ```
 
 Get dynamically loaded libraries with `ipsw`:
@@ -1609,6 +1660,11 @@ Cross-compile a dynamic library from MacOS for iOS:
 
 ```shell
 clang -arch arm64 -miphoneos-version-min=15.0 -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" -dynamiclib License.c -o license.dylib
+```
+
+Extract Google API Keys:
+```shell
+grep -RaEoh "AIzaSy[A-Za-z0-9_/\-]{33}" | sort | uniq
 ```
 
 #### Objective-C Analysis
@@ -2011,7 +2067,7 @@ Look for `NSExtensionActivationRule` property in the `Info.plist`. That key spec
 
 Hook `NSExtensionContext - inputItems` in the data originating app.
 
-### Input Validation
+#### Input Validation
 
 In web views' form fields, try inject some of these payloads:
 
@@ -2070,7 +2126,7 @@ The device UDID can be found by using `xcrun`:
 
 ```shell
 xcrun xctrace list devices
-### OR only booted simulators
+# OR only booted simulators
 xcrun simctl list | grep "Booted"
 ```
 
@@ -2084,6 +2140,12 @@ Remove the RVI interface with `rvictl`:
 
 ```shell
 rvictl -x <device UDID>
+```
+
+On linux, use the alternative [rvi_capture](https://github.com/gh2o/rvi_capture):
+
+```shell
+python rvi_capture.py --udid <UDID> <out .pcap>
 ```
 
 #### Hooking
@@ -2283,10 +2345,9 @@ Send command output to clipboard:
 
 ## Flutter
 
-Useful resources:
+Useful resources and tools:
 
-- https://github.com/ptswarm/reFlutter
-- https://docs.flutter.dev/reference/security-false-positives
+- [Flutter - Security False Positives](https://docs.flutter.dev/reference/security-false-positives)
 
 #### SSL Pinning Bypass
 
@@ -2309,7 +2370,16 @@ HttpClient createHttpClient(SecurityContext? context) {
 
 The following frida script works fine: [https://github.com/NVISOsecurity/disable-flutter-tls-verification](https://github.com/NVISOsecurity/disable-flutter-tls-verification)
 
+The following tools can be used to patch a Flutter app and disable the pinning:
+
+- [reFlutter](https://github.com/ptswarm/reFlutter)
+- [kill_flutter](https://github.com/f3rb123/kill_flutter)
+
 ### HTTP Traffic Interception
+
+#### FlutterTap
+
+[FlutterTap](https://github.com/script-or-script/FlutterTap) is Zygisk module that hooks `libapp.so` at runtime, allowing to redirect HTTP traffic and bypass the SSL pinning for Android Flutter applications. It can be installed as a `Magisk` module.
 
 #### Frida Flutter Proxy
 
@@ -2336,7 +2406,7 @@ Flutter does not use system proxy configuration and it doesnâ€™t use the systemâ
 Another alternative is this script generated with Claude, which merges SSL Pinning bypass technique from [https://github.com/NVISOsecurity/disable-flutter-tls-verification](https://github.com/NVISOsecurity/disable-flutter-tls-verification) with the proxying from [frida-flutterproxy](https://github.com/hackcatml/frida-flutterproxy):
 
 - [flutter-tls-bypass-and-proxy.js](https://github.com/ojack69/jacks-corner/tree/main/scripts/Misc)
-### Flutter Reversing
+### Reversing
 
 Dump flutter packages, after unpacking the APK/IPA:  
 
@@ -2347,6 +2417,28 @@ strings lib/arm64-v8a/libapp.so | grep package: | cut -d '/' -f 1 | sort | uniq
 # iOS
 strings Frameworks/App.framework/App | grep package: | cut -d '/' -f 1 | sort | uniq 
 ```
+
+Extract Dart classes, methods and members from the AOT Runtime - `libapp.so` using [blutter](https://github.com/worawit/blutter):
+
+```shell
+python blutter.py <APK or libapp.so> <output dir>  
+```
+
+- Always inspect `pp.txt` which may contain useful information such as hardcoded API Keys, usernames, password, etc.
+
+Extract Dart pseudo code using [flutterdec](https://github.com/caverav/flutterdec) with `blutter` backend:
+
+```shell
+# Using FLUTTERDEC_BLUTTER_PY - requires blutter venv to be activated
+FLUTTERDEC_BLUTTER_PY="<blutter .py location>" flutterdec decompile --adapter-backend blutter --function-scope app-unknown --app-package <app package> --out <results output dir> <target APK>
+
+# Using FLUTTERDEC_BLUTTER_CMD - specify the whole command for running blutter
+FLUTTERDEC_BLUTTER_CMD="</blutter/venv/bin/python> <blutter .py location>" flutterdec decompile --adapter-backend blutter --function-scope app-unknown --app-package <app package> --out <results output dir> <target APK>
+```
+
+- `--function-scope app-unknown`: filter out Flutter and Dart internals
+- `--app-package: <app package>`: include only specific package classes
+
 
 Check if iOS app is obfuscated:
 
@@ -2359,6 +2451,33 @@ strings Frameworks/App.framework/App | grep -E 'Controller|Repository|Service|Vi
 
 **Note**: Flutter obfuscation affects class and methods names but not static strings (e.g. containing hardcoded sensitive information) and may not rename all class members names. - [Flutter Docs - Obfuscate](https://docs.flutter.dev/deployment/obfuscate)
 
+### Common Issues
+
+#### x86_x64 Emulators
+
+When working on emulators running on `x86_x64` hosts, it may possible to receive the following error when trying running a Flutter application which is not built targeting x86_x64.
+
+- `UnsatisfiedLinkError: _dlopen failed: libflutter.so is for EM_AARCH64`
+
+Recent emulators (generally, from Android >=11) running on `x86_x64` hosts do actually support running applications built for `arm`; this is possible thanks to an intermediate translation level, `libndk_translation` for AVD emulators or `libhoudini` for Genymotion emulators. 
+
+However, when installing the Flutter APK, Android marks the application as `x86_x64` by default; when the application is started, Android starts an `x86_x64` main process, therefore not triggering the intermediate translation layer, attempting to load the `libapp.so` that, instead, is `arm`-based. This leads to the previous error.
+
+In this scenario, try to install the APK by specifying the `abi` to use:
+
+```shell
+adb install --abi <abi> <APK> 
+```
+
+When specifying an abi such as `arm64-v8a` (64 bit) or `armeabi-v7a` (32 bit), Android marks that application with that abi, triggering the intermediate translation layer when the app is launched. 
+
+Check emulator supported abi:
+
+```shell
+adb shell getprop ro.product.cpu.abi
+```
+
+**Note: due to the translation layer, hooking techniques based on known offsets are most  likely to fail - at runtime the original arm instructions are translated to x86/x64, misaligning all the pre-calculated offsets.**
 
 ## Frida & Objection
 
